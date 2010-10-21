@@ -102,6 +102,7 @@ int ua_main(int argc, char **argv){
 	return 0;
 }
 
+//commit test
 int main(int argc, char **argv){
 	libmnetutilInit();
 	libmcryptoInit();
