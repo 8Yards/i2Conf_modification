@@ -1,0 +1,14 @@
+<interface>eth0</interface>
+<use_udp>true</use_udp>
+<use_tcp>false</use_tcp>
+<sip_identity>
+	<uri>user@domain</uri>
+	<local_port>5060</local_port>
+	<register>false</register>
+	<username>user</username>
+	<password>password</password>
+	<realm>domain</realm>
+	<proxy_address>proxy</proxy_address>
+	<proxy_protocol>UDP</proxy_protocol>
+	<proxy_port>5060</proxy_port>
+</sip_identity>

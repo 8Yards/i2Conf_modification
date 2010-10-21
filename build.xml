@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<project name="i8Conf" default="make">
+	<description>
+        Ant adaptor for the i8Conf Makefile.
+    </description>
+
+	<target name="configure" description="configure i2Conf">
+		<exec executable="./configure">
+		</exec>
+	</target>
+
+	<target name="clean" description="clean i2Conf">
+		<exec executable="make">
+			<arg value="clean" />
+		</exec>
+	</target>
+
+	<target name="make" description="build i2Conf">
+		<exec executable="make">
+		</exec>
+	</target>
+</project>

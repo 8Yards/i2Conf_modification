@@ -1,0 +1,12 @@
+
+<interface>wlan0</interface>
+<use_udp>true</use_udp>
+<use_tcp>false</use_tcp>
+<sip_identity>
+  <uri>mcu@localhost</uri>
+  <local_port>5061</local_port>
+  <register>true</register>
+  <username>mcu</username>
+  <password>pwd</password>
+  <realm>localhost</realm>
+</sip_identity>
