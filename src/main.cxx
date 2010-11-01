@@ -44,13 +44,19 @@ void usage(string progname){
 	exit(1);
 }
 
+//[prajwol]:: call to usage for invalid arguments
 int ua_main(int argc, char **argv){
 
 	string configFile;
 	
-	for (int i = 1; i < argc; i += 2){
+	if(argc < 3){
+		usage("i2Conf");
+	}
+
+	for (int i = 1; i < argc; i ++){
 		if (string("-f")==argv[i]) {
 			configFile=argv[i+1];
+			i++;
 		}
 		
 		if(string("-debug")==argv[i]) { 
