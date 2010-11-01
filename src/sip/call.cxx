@@ -233,20 +233,16 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		//-- start here
 		cerr<< endl << endl << "calling ninka...";
 
-		CommandString testInvite("", SipCommandString::invite, "nina@130.229.151.159");
-		CommandString testResp = getSipStack()->handleCommandResp("sip", testInvite);
-//		string callId = testResp.getDestinationId();
+		MRef<SipRequest*> req = SipRequest::createSipMessageInvite("1234",
+									SipUri("michel@130.229.151.159"),
+									SipUri("prajwol@130.229.151.159"),
+									SipUri("contact"),
+									123,
+									getSipStack());
 
-//		MRef<SipMessage*> req = new SipRequest()::createSipMessageInvite("1234",
-//									SipUri("nina@130.229.151.159"),
-//									SipUri("prajwol@130.229.151.159"),
-//									SipUri("contact"),
-//									123,
-//									getSipStack());
-//
-//		getSipStack()->->enqueueCommand( SipSMCommand(req,
-//						SipSMCommand::dialog_layer,
-//						SipSMCommand::transaction_layer));
+		getSipStack()->enqueueCommand( SipSMCommand(*req,
+						SipSMCommand::dialog_layer,
+						SipSMCommand::transaction_layer));
 
 		cerr<< endl << endl << "call finished - ";
 		//-- end here

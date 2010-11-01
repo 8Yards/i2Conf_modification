@@ -48,20 +48,8 @@ void App::handleCommand(string subsystem, const CommandString &cmd) {
 }
 
 CommandString App::handleCommandResp(string subsystem, const CommandString &cmd) {
-
-cerr << "shameful";
-
-	MRef<SipDialog*> call = new Call(sipStack,
-							myIdentity,
-							cmd.getCommandPacket()->getCallId(),
-							this);
-			lastCallId = call->getCallId();
-			calls[lastCallId] = dynamic_cast<Call*> (*call);
-			sipStack->addDialog(call);
-			call->handleCommand(cmd);
-
-				CommandString ret;
-				return ret;
+	CommandString ret;
+	return ret;
 }
 
 bool App::handleCommand(const SipSMCommand& cmd) {
