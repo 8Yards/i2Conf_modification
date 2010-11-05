@@ -53,7 +53,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_i2conf_OBJECTS = app.$(OBJEXT) main.$(OBJEXT) \
 	timeoutController.$(OBJEXT) XMLConfig.$(OBJEXT) \
 	participant.$(OBJEXT) room.$(OBJEXT) codec.$(OBJEXT) \
-	media.$(OBJEXT) sdpDesc.$(OBJEXT) call.$(OBJEXT)
+	media.$(OBJEXT) sdpDesc.$(OBJEXT) callClient.$(OBJEXT) \
+	call.$(OBJEXT)
 i2conf_OBJECTS = $(am_i2conf_OBJECTS)
 i2conf_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -188,6 +189,8 @@ i2conf_SOURCES = src/app.cxx \
 		 src/sdp/media.h \
 		 src/sdp/sdpDesc.cxx \
 		 src/sdp/sdpDesc.h \
+		 src/sip/callClient.cxx \
+		 src/sip/callClient.h \
 		 src/sip/call.cxx \
 		 src/sip/call.h
 
@@ -304,6 +307,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/participant.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/room.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdpDesc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/callClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timeoutController.Po@am__quote@
 
 .cxx.o:
@@ -445,6 +449,20 @@ sdpDesc.obj: src/sdp/sdpDesc.cxx
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/sdp/sdpDesc.cxx' object='sdpDesc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sdpDesc.obj `if test -f 'src/sdp/sdpDesc.cxx'; then $(CYGPATH_W) 'src/sdp/sdpDesc.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sdp/sdpDesc.cxx'; fi`
+
+callClient.o: src/sip/callClient.cxx
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callClient.o -MD -MP -MF $(DEPDIR)/callClient.Tpo -c -o callClient.o `test -f 'src/sip/callClient.cxx' || echo '$(srcdir)/'`src/sip/callClient.cxx
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/callClient.Tpo $(DEPDIR)/callClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/sip/callClient.cxx' object='callClient.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callClient.o `test -f 'src/sip/callClient.cxx' || echo '$(srcdir)/'`src/sip/callClient.cxx
+
+callClient.obj: src/sip/callClient.cxx
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callClient.obj -MD -MP -MF $(DEPDIR)/callClient.Tpo -c -o callClient.obj `if test -f 'src/sip/callClient.cxx'; then $(CYGPATH_W) 'src/sip/callClient.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callClient.cxx'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/callClient.Tpo $(DEPDIR)/callClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/sip/callClient.cxx' object='callClient.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callClient.obj `if test -f 'src/sip/callClient.cxx'; then $(CYGPATH_W) 'src/sip/callClient.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callClient.cxx'; fi`
 
 call.o: src/sip/call.cxx
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT call.o -MD -MP -MF $(DEPDIR)/call.Tpo -c -o call.o `test -f 'src/sip/call.cxx' || echo '$(srcdir)/'`src/sip/call.cxx

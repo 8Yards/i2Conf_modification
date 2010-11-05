@@ -25,7 +25,6 @@
 #include<string>
 
 #include "call.h"
-
 #include<libmsip/SipTransitionUtils.h>
 #include<libmsip/SipHeaderMaxForwards.h>
 #include<libmsip/SipHeaderCallID.h>
@@ -34,8 +33,11 @@
 #include<libmsip/SipHeaderCSeq.h>
 #include<libmsip/SipHeaderContact.h>
 #include<libmsip/SipHeaderUnknown.h>
-//prajwol->added. guess why - to use :P
+
+//prajwol-> under construction
 #include<libmsip/SipCommandString.h>
+#include "callClient.h"
+
 
 using namespace std;
 
@@ -103,68 +105,6 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
 			s_terminated);			
 }
 
-/* - ORIGINAL CODE
-
- bool Call::start_inConference (const SipSMCommand &cmd) {
-	// To avoid mcu from crash, check cmd contains any
-	// commandPacket or just the String (Error message)
-
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
-		return false;
-	}
-
-	//get the room of that call
-	room = app->getRoom(app->readRoom(cmd.getCommandPacket()->getTo().getString()));
-
-	if (transitionMatch("INVITE", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer) &&
-		room->isAuthorized(cmd.getCommandPacket()->getFrom().getUserIpString())) {
-
-		//update tag
-	    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-
-		//get the sdp in the invite
-		sdpInPacket = dynamic_cast <SdpPacket*> (*(cmd.getCommandPacket())->getContent());
-
-		//generate a 180 Ringing response
-		MRef<SipMessage*> resp = new SipResponse(180,"Ringing",(SipRequest*)*cmd.getCommandPacket());
-		MRef<SipHeaderValue *> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
-		resp->addHeader( new SipHeader(*contact));
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-
-		//send the response
-		getSipStack()->enqueueCommand( SipSMCommand(resp,
-				SipSMCommand::dialog_layer,
-				SipSMCommand::transaction_layer));
-
-
-		//Generate a 200 response
-		//update tag
-	    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-		resp = new SipResponse(200,"ok",(SipRequest*)*cmd.getCommandPacket());
-
-		resp->addHeader( new SipHeader(*contact));
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
-							getDialogConfig()->sipIdentity->getSipUri().getString())));
-
-
-
-		//add sdp
-		resp->setContent(dynamic_cast<SipMessageContent*> (*(room->getSdp()->getSdpPacket())));
-
-		//send the response
-		getSipStack()->enqueueCommand( SipSMCommand(resp,
-				SipSMCommand::dialog_layer,
-				SipSMCommand::transaction_layer));
-
-		room->addParticipant(dialogState.callId, sdpInPacket);
-
-		return true;
-	}
-	return false;
-}
-*/
-
 //prajwol:: maintenance in progress :)
 /*
  * this method handles the INVITE request from say client A.
@@ -173,6 +113,7 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
  * it should be A who indicates B in some way through SDP
  */
 bool Call::start_inConference (const SipSMCommand &cmd) {
+
 	/**
 	* To avoid mcu from crash, check cmd contains any
 	* commandPacket or just the String (Error message)
@@ -231,20 +172,28 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 
 
 		//-- start here
-		cerr<< endl << endl << "calling ninka...";
 
-		MRef<SipRequest*> req = SipRequest::createSipMessageInvite("1234",
-									SipUri("michel@130.229.151.159"),
-									SipUri("prajwol@130.229.151.159"),
-									SipUri("contact"),
-									123,
-									getSipStack());
+//		if(true){
+			string user[] = {"venky@130.229.153.217", "nina@130.229.153.217"};
+			string callIDs[] = {"78909865432", "0987878987654321"};
+//			for(int i=0; i<2; i++){
+				MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "1234567890", room);
+					getSipStack()->addDialog(callClient);
 
-		getSipStack()->enqueueCommand( SipSMCommand(*req,
-						SipSMCommand::dialog_layer,
-						SipSMCommand::transaction_layer));
+				CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.153.217");
+				SipSMCommand c(SipSMCommand(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer));
 
-		cerr<< endl << endl << "call finished - ";
+				getSipStack()->handleCommand(c);
+
+				MRef<SipDialog*> callClient2 = new CallClient(getSipStack(), myIdentity, "1100998834", room);
+					getSipStack()->addDialog(callClient2);
+
+				CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "venky@130.229.153.217");
+				SipSMCommand c3(SipSMCommand(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer));
+
+				getSipStack()->handleCommand(c3);
+//			}
+//		}
 		//-- end here
 			
 		return true;
