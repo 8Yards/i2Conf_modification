@@ -31,6 +31,10 @@
 #include<libmnetutil/UDPSocket.h>
 #include<libmutil/Exception.h>
 
+//prajwol-> under construction
+//#include<libminisip/signaling/sip/SipDialogVoipClient.h>
+#include "sip/callClient.h"
+
 using namespace std;
 
 App::App(string configFile) {
@@ -44,9 +48,9 @@ App::App(string configFile) {
 }
 
 void App::handleCommand(string subsystem, const CommandString &cmd) {
-	
 }
 
+//prajwol-> under construction
 CommandString App::handleCommandResp(string subsystem, const CommandString &cmd) {
 	CommandString ret;
 	return ret;
@@ -62,7 +66,7 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET )
 		return false;
 	
-	if (cmd.getCommandPacket()->getType()=="INVITE") {   //Act as a server
+	if (cmd.getCommandPacket()->getType()=="INVITE"){   //Act as a server
 		MRef<SipDialog*> call = new Call(sipStack,
 						myIdentity, 
 						cmd.getCommandPacket()->getCallId(), 
@@ -71,10 +75,26 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		calls[lastCallId] = dynamic_cast<Call*> (*call);
 		sipStack->addDialog(call);
 		bool ret = call->handleCommand(cmd);
+
+		//prajwol->test start here
+						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+						CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.159.113");
+						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+						sipStack->addDialog(callClient);
+						callClient->handleCommand(c);
+
+						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
+						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "venky@130.229.159.113");
+						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+						sipStack->addDialog(callClient2);
+						callClient2->handleCommand(c2);
+		//prajwol->test ends here
+
+
+
 		//massert(ret);
 		return ret;
-	}
-	else {
+	}else {
 		cerr << "App: I don't know how to handle packet " << cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}

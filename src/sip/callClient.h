@@ -11,12 +11,12 @@
 #include<libmsip/SipStack.h>
 #include<libmsip/SipDialog.h>
 
-class Room;
+class App;
 using namespace std;
 
 class CallClient: public SipDialog{
 public:
-	CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<Room*> room);
+	CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app);
 
 	string getName();
 
@@ -24,8 +24,8 @@ public:
 	bool calling_incall_2xx(const SipSMCommand &command);
 
 private:
-	MRef<Room*> myRoom;
+	MRef<App*> app;
 	MRef<SipIdentity*> myIdentity;
 };
-#include "../rooms/room.h"
+#include "../app.h"
 #endif /* CALLCLIENT_H_ */

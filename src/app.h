@@ -47,9 +47,14 @@ using namespace std;
 class App : public SipDefaultHandler, public Runnable {
 	public:
 		App(string configFile);
+
+
+		bool handleCommand(const SipSMCommand& cmd);
+
 		void handleCommand(string subsystem, const CommandString &cmd);
 		CommandString handleCommandResp(string subsystem, const CommandString &cmd);
-		bool handleCommand(const SipSMCommand& cmd);
+
+
 		void run();
 		string getLastCallId();
 		

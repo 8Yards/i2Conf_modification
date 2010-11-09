@@ -36,7 +36,7 @@
 
 //prajwol-> under construction
 #include<libmsip/SipCommandString.h>
-#include "callClient.h"
+
 
 
 using namespace std;
@@ -135,6 +135,8 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		//get the sdp in the invite
 		sdpInPacket = dynamic_cast <SdpPacket*> (*(cmd.getCommandPacket())->getContent());
 		
+//		cout << endl << "----In------" << endl << sdpInPacket->getString() << endl << "-------------" << endl;
+
 		//generate a 180 Ringing response		
 		MRef<SipMessage*> resp = new SipResponse(180,"Ringing",(SipRequest*)*cmd.getCommandPacket());
 		MRef<SipHeaderValue *> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1); 
@@ -169,30 +171,27 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		
 		room->addParticipant(dialogState.callId, sdpInPacket);
 
-
+		cout << endl << "----Added------" << endl << dialogState.callId << endl << sdpInPacket->getString() << endl << "-------------" << endl;
 
 		//-- start here
 
 //		if(true){
-			string user[] = {"venky@130.229.153.217", "nina@130.229.153.217"};
-			string callIDs[] = {"78909865432", "0987878987654321"};
-//			for(int i=0; i<2; i++){
-				MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "1234567890", room);
-					getSipStack()->addDialog(callClient);
-
-				CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.153.217");
-				SipSMCommand c(SipSMCommand(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer));
-
-				getSipStack()->handleCommand(c);
-
-				MRef<SipDialog*> callClient2 = new CallClient(getSipStack(), myIdentity, "1100998834", room);
-					getSipStack()->addDialog(callClient2);
-
-				CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "venky@130.229.153.217");
-				SipSMCommand c3(SipSMCommand(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer));
-
-				getSipStack()->handleCommand(c3);
-//			}
+//			string user[] = {"prajwol2@130.229.153.217", "nina@130.229.153.217"};
+//			//for(int i=0; i<2; i++){
+//				MRef<SipDialog*> callClient2 = new CallClient(getSipStack(), myIdentity, "", room);
+//				getSipStack()->addDialog(callClient2);
+//				CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "venky@130.229.159.113");
+//
+//				SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//				callClient2->handleCommand(c2);
+//
+//				MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , room);
+//				getSipStack()->addDialog(callClient);
+//				CommandString inv(callClient->getCallId(), SipCommandString::invite, "prajwol2@130.229.159.113");
+//
+//				SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//				callClient->handleCommand(c);
+////			}
 //		}
 		//-- end here
 			

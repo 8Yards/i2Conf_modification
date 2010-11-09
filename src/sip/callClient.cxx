@@ -21,8 +21,8 @@
 
 using namespace std;
 
-CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<Room*> room):
-	SipDialog(stack, ident, cid), myIdentity(ident), myRoom(room) {
+CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app):
+	SipDialog(stack, ident, cid), myIdentity(ident), app(app) {
 
 	State<SipSMCommand, string> *s_start = new State<SipSMCommand, string> (this, "start");
 	addState(s_start);
@@ -44,8 +44,6 @@ CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string c
 			"transition_calling_incall_2xx",
 			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallClient::calling_incall_2xx,
 			s_calling, s_incall);
-
-	setCurrentState(s_start);
 }
 
 bool CallClient::start_calling_invite(const SipSMCommand &command){
@@ -68,7 +66,7 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 		//addRoute( inv );
 
 		inv->getHeaderValueFrom()->setParameter("tag",dialogState.localTag );
-		inv->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
+//		inv->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
 
 		MRef<SipMessage*> pktr(*inv);
 
@@ -102,6 +100,9 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 
 		//--sendAck();
 		MRef<SipRequest*> ack = createSipMessageAck((SipRequest*)*command.getCommandPacket());
+		MRef<Room*> myRoom1 = app->getRoom("default");
+
+		ack->setContent(dynamic_cast<SipMessageContent*> (*(myRoom1->getSdp()->getSdpPacket())));
 
 		// Send ACKs directly to the transport layer bypassing
 		// the transaction layer
@@ -115,7 +116,12 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 		//--
 		MRef<SdpPacket*> sdpPack = dynamic_cast <SdpPacket*> (*(command.getCommandPacket())->getContent());
 //		myRoom->addParticipant(dialogState.callId, sdpPack);
-		myRoom->addParticipant(dialogState.callId, myRoom->getSdp()->getSdpPacket());
+
+
+//		myRoom->addParticipant(dialogState.callId, myRoom->getSdp()->getSdpPacket());
+		myRoom1->addParticipant(dialogState.callId, sdpPack);
+
+		cout << endl << "-----Added-----" << endl << dialogState.callId << endl << sdpPack->getString() << endl << "-------------" << endl;
 
 		return true;
 	}else{
