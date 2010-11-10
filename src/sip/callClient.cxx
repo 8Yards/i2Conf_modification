@@ -49,11 +49,9 @@ CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string c
 bool CallClient::start_calling_invite(const SipSMCommand &command){
 	if (transitionMatch(command, SipCommandString::invite, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer)){
 		++dialogState.seqNo;
-		//set an "early" remoteUri ... we will update this later
 		dialogState.remoteUri= command.getCommandString().getParam();
 
 		//--sendInvite();
-
 		MRef<SipRequest*> inv = SipRequest::createSipMessageInvite(
 				dialogState.callId,
 				SipUri(dialogState.remoteUri),
@@ -62,14 +60,9 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 				dialogState.seqNo,
 				getSipStack() ) ;
 
-		//addAuthorizations( inv );
-		//addRoute( inv );
-
 		inv->getHeaderValueFrom()->setParameter("tag",dialogState.localTag );
-//		inv->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
 
 		MRef<SipMessage*> pktr(*inv);
-
 		SipSMCommand scmd(
 				pktr,
 				SipSMCommand::dialog_layer,
@@ -87,25 +80,15 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 
 bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 	if (transitionMatchSipResponse("INVITE", command, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer, "2**")){
-
-		dialogState.updateState((SipRequest*)*command.getCommandPacket());
-
 		MRef<SipResponse*> resp(  (SipResponse*)*command.getCommandPacket() );
-
-		// Build peer uri used for authentication from remote uri,
-		// but containing user and host only.
-		SipUri peer(dialogState.remoteUri);
-		string peerUri = peer.getProtocolId() + ":" + peer.getUserIpString();
 		dialogState.updateState( resp );
 
 		//--sendAck();
 		MRef<SipRequest*> ack = createSipMessageAck((SipRequest*)*command.getCommandPacket());
-		MRef<Room*> myRoom1 = app->getRoom("default");
+		MRef<Room*> myRoom = app->getRoom("default");
 
-		ack->setContent(dynamic_cast<SipMessageContent*> (*(myRoom1->getSdp()->getSdpPacket())));
+		ack->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
 
-		// Send ACKs directly to the transport layer bypassing
-		// the transaction layer
 		SipSMCommand scmd(
 				*ack,
 				SipSMCommand::dialog_layer,
@@ -113,15 +96,9 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 				);
 
 		getSipStack()->enqueueCommand(scmd, HIGH_PRIO_QUEUE);
-		//--
+
 		MRef<SdpPacket*> sdpPack = dynamic_cast <SdpPacket*> (*(command.getCommandPacket())->getContent());
-//		myRoom->addParticipant(dialogState.callId, sdpPack);
-
-
-//		myRoom->addParticipant(dialogState.callId, myRoom->getSdp()->getSdpPacket());
-		myRoom1->addParticipant(dialogState.callId, sdpPack);
-
-		cout << endl << "-----Added-----" << endl << dialogState.callId << endl << sdpPack->getString() << endl << "-------------" << endl;
+		myRoom->addParticipant(dialogState.callId, sdpPack);
 
 		return true;
 	}else{

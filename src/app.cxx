@@ -77,14 +77,14 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		bool ret = call->handleCommand(cmd);
 
 		//prajwol->test start here
-						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
-						CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.159.113");
-						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-						sipStack->addDialog(callClient);
-						callClient->handleCommand(c);
+//						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+//						CommandString inv(callClient->getCallId(), SipCommandString::invite, "michel@130.229.159.113");
+//						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//						sipStack->addDialog(callClient);
+//						callClient->handleCommand(c);
 
 						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
-						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "venky@130.229.159.113");
+						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "prajwol@130.229.159.113");
 						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
 						sipStack->addDialog(callClient2);
 						callClient2->handleCommand(c2);

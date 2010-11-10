@@ -169,9 +169,18 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 				SipSMCommand::dialog_layer, 
 				SipSMCommand::transaction_layer));
 		
+		cout << endl << "----previous participants-------" << endl;
+
+		map <string,MRef<Participant*> > participants = room->getParticipants();
+
+				for(map<string, MRef<Participant*> >::iterator it = participants.begin(); it != participants.end(); ++it) {
+					cout << (*it).second->getCallId() << endl;
+				}
+		cout << endl << "-----------" << endl;
+
 		room->addParticipant(dialogState.callId, sdpInPacket);
 
-		cout << endl << "----Added------" << endl << dialogState.callId << endl << sdpInPacket->getString() << endl << "-------------" << endl;
+		cout << endl << "----Added------" << endl << dialogState.callId << endl << "-------------" << endl;
 
 		//-- start here
 
