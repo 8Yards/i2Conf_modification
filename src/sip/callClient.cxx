@@ -52,7 +52,7 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 		dialogState.remoteUri= command.getCommandString().getParam();
 
 		//--sendInvite();
-		MRef<SipRequest*> inv = SipRequest::createSipMessageInvite(
+		myInvite = SipRequest::createSipMessageInvite(
 				dialogState.callId,
 				SipUri(dialogState.remoteUri),
 				getDialogConfig()->sipIdentity->getSipUri(),
@@ -60,9 +60,11 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 				dialogState.seqNo,
 				getSipStack() ) ;
 
-		inv->getHeaderValueFrom()->setParameter("tag",dialogState.localTag );
+		MRef<Room*> myRoom = app->getRoom("default");
+		myInvite->getHeaderValueFrom()->setParameter("tag",dialogState.localTag );
+		myInvite->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
 
-		MRef<SipMessage*> pktr(*inv);
+		MRef<SipMessage*> pktr(*myInvite);
 		SipSMCommand scmd(
 				pktr,
 				SipSMCommand::dialog_layer,
@@ -82,11 +84,10 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 	if (transitionMatchSipResponse("INVITE", command, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer, "2**")){
 		MRef<SipResponse*> resp(  (SipResponse*)*command.getCommandPacket() );
 		dialogState.updateState( resp );
-
-		//--sendAck();
-		MRef<SipRequest*> ack = createSipMessageAck((SipRequest*)*command.getCommandPacket());
 		MRef<Room*> myRoom = app->getRoom("default");
 
+		//--sendAck();
+		MRef<SipRequest*> ack = createSipMessageAck(myInvite);
 		ack->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
 
 		SipSMCommand scmd(

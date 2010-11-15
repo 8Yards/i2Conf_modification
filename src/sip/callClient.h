@@ -25,6 +25,7 @@ public:
 
 private:
 	MRef<App*> app;
+	MRef<SipRequest*> myInvite;
 	MRef<SipIdentity*> myIdentity;
 };
 #include "../app.h"

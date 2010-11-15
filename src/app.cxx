@@ -50,7 +50,6 @@ App::App(string configFile) {
 void App::handleCommand(string subsystem, const CommandString &cmd) {
 }
 
-//prajwol-> under construction
 CommandString App::handleCommandResp(string subsystem, const CommandString &cmd) {
 	CommandString ret;
 	return ret;
@@ -77,20 +76,18 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		bool ret = call->handleCommand(cmd);
 
 		//prajwol->test start here
-//						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
-//						CommandString inv(callClient->getCallId(), SipCommandString::invite, "michel@130.229.159.113");
-//						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-//						sipStack->addDialog(callClient);
-//						callClient->handleCommand(c);
+						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+						CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.159.113");
+						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+						sipStack->addDialog(callClient);
+						callClient->handleCommand(c);
 
 						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
-						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "prajwol@130.229.159.113");
+						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "erik@130.229.159.113");
 						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
 						sipStack->addDialog(callClient2);
 						callClient2->handleCommand(c2);
 		//prajwol->test ends here
-
-
 
 		//massert(ret);
 		return ret;
@@ -261,7 +258,7 @@ void App::loadConfig(string configFile) {
 		codec->addAttribute("8000");
 		codec->addAttribute("1");
 		audio->addCodec(codec);
-		
+
 		//PCMA
 		codec = new Codec("G711 PCMA", "8", "PCMA");
 		codec->addAttribute("8000");
