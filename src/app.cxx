@@ -31,10 +31,6 @@
 #include<libmnetutil/UDPSocket.h>
 #include<libmutil/Exception.h>
 
-//prajwol-> under construction
-//#include<libminisip/signaling/sip/SipDialogVoipClient.h>
-#include "sip/callClient.h"
-
 using namespace std;
 
 App::App(string configFile) {
@@ -65,6 +61,15 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET )
 		return false;
 	
+	/*MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
+	//	cerr << "---" << endl << sipMessage->getContentType() << endl << sipMessage->getBoundry();
+	MRef<SipMessageContent*> sipMessagePart1 = sipMessage->popFirstPart();
+	MRef<SipMessageContent*> sipMessagePart2 = sipMessage->popFirstPart();
+	//	cerr << "---" << endl << sipMessagePart1->getContentType() << endl;
+	//	cerr << "---" << endl << sipMessagePart2->getContentType() << endl;
+	cerr << "---" << endl << sipMessagePart2->getString() << endl;
+	exit(-1);*/
+
 	if (cmd.getCommandPacket()->getType()=="INVITE"){   //Act as a server
 		MRef<SipDialog*> call = new Call(sipStack,
 						myIdentity, 
@@ -74,20 +79,6 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		calls[lastCallId] = dynamic_cast<Call*> (*call);
 		sipStack->addDialog(call);
 		bool ret = call->handleCommand(cmd);
-
-		//prajwol->test start here
-						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
-						CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.159.113");
-						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-						sipStack->addDialog(callClient);
-						callClient->handleCommand(c);
-
-						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
-						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "erik@130.229.159.113");
-						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-						sipStack->addDialog(callClient2);
-						callClient2->handleCommand(c2);
-		//prajwol->test ends here
 
 		//massert(ret);
 		return ret;
@@ -235,7 +226,7 @@ void App::loadConfig(string configFile) {
 	
 	//In order to deal with sdp, we need a factory
 	SipMessage::contentFactories.addFactory("application/sdp", sdpSipMessageContentFactory);
-	
+	SipMessage::contentFactories.addFactory("application/resource-lists+xml", SipRCLContentFactory);
 	
 	//add default room
 	MRef<Room*> defaultRoom = new Room("default", "Public conference room", this);

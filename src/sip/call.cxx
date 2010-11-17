@@ -34,10 +34,8 @@
 #include<libmsip/SipHeaderContact.h>
 #include<libmsip/SipHeaderUnknown.h>
 
-//prajwol-> under construction
 #include<libmsip/SipCommandString.h>
-
-
+#include "callClient.h"
 
 using namespace std;
 
@@ -123,11 +121,36 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		room->isAuthorized(cmd.getCommandPacket()->getFrom().getUserIpString())) {
 		
 		//update tag
-	    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
+    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
 		
 		//get the sdp in the invite
-		sdpInPacket = dynamic_cast <SdpPacket*> (*(cmd.getCommandPacket())->getContent());
-		
+    	//prajwol: B-) now howz that :P
+    	std::string objectType = cmd.getCommandPacket()->getContent()->getMemObjectType();
+    	if(objectType == "SdpPacket"){
+    		sdpInPacket = dynamic_cast <SdpPacket*> (*(cmd.getCommandPacket())->getContent());
+    	}else if(objectType == "SipMessageContentMime"){
+    		MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
+    		sdpInPacket = dynamic_cast <SdpPacket*> (*(sipMessage)->popFirstPart());
+
+
+    		MRef<SipMessageContentRCL*> rclMesssage = dynamic_cast <SipMessageContentRCL*> (*(sipMessage)->popFirstPart());
+    		std::vector<std::string> participants = rclMesssage->getParticipantList();
+
+    		std::vector <std::string>::const_iterator iter;
+			iter = participants.begin();
+			while(iter != participants.end()){
+				//make call -->
+				MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app);
+				CommandString inv(callClient->getCallId(), SipCommandString::invite, *iter);
+				SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+				getSipStack()->addDialog(callClient);
+				callClient->handleCommand(c);
+				//make call <--
+
+				iter++;
+			}
+    	}
+
 		//generate a 180 Ringing response
 		MRef<SipMessage*> resp = new SipResponse(180,"Ringing",(SipRequest*)*cmd.getCommandPacket());
 		MRef<SipHeaderValue *> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);

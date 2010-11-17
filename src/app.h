@@ -28,6 +28,8 @@
 #include<libmsip/SipStack.h>
 #include<libmnetutil/NetworkFunctions.h>
 #include<libminisip/signaling/sdp/SdpPacket.h>
+#include<libmsip/SipMessageContentMime.h>
+#include<libmsip/SipMessageContentRCL.h>
 
 #include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
