@@ -21,8 +21,8 @@
 
 using namespace std;
 
-CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app):
-	SipDialog(stack, ident, cid), myIdentity(ident), app(app) {
+CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app, MRef<SipMessageContent*> sipContent):
+	SipDialog(stack, ident, cid), myIdentity(ident), app(app), mySipContent(sipContent) {
 
 	State<SipSMCommand, string> *s_start = new State<SipSMCommand, string> (this, "start");
 	addState(s_start);
@@ -62,7 +62,9 @@ bool CallClient::start_calling_invite(const SipSMCommand &command){
 
 		MRef<Room*> myRoom = app->getRoom("default");
 		myInvite->getHeaderValueFrom()->setParameter("tag",dialogState.localTag );
-		myInvite->setContent(dynamic_cast<SipMessageContent*> (*(myRoom->getSdp()->getSdpPacket())));
+		myInvite->getHeaderValueTo()->setParameter("confID", "some_random_value");//prajwol:: add that unique THING for conversation
+		myInvite->setContent(mySipContent);
+
 
 		MRef<SipMessage*> pktr(*myInvite);
 		SipSMCommand scmd(
@@ -109,4 +111,8 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 
 string CallClient::getName(){
 	return "CallClient";
+}
+
+void CallClient::setMySipContent(MRef<SipMessageContent*> sipContent){
+	this->mySipContent = sipContent;
 }

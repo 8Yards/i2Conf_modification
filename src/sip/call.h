@@ -27,6 +27,9 @@
 #include<libmsip/SipStack.h>
 #include<libmsip/SipDialog.h>
 #include <libminisip/signaling/sdp/SdpPacket.h>
+#include<libmsip/SipMessageContentMime.h>
+#include<libmsip/SipMessageContentRCL.h>
+
 
 
 class App;
@@ -51,7 +54,9 @@ class Call : public SipDialog{
 		MRef<SipIdentity*> myIdentity;
 		MRef<App*> app;
 		MRef<Room*> room;
+		MRef<SipMessageContentMime*> mimeInPacket;
 		MRef<SdpPacket*> sdpInPacket;
+		MRef<SipMessageContentRCL*> rclInPacket;
 };
 #include "../app.h"
 #include "../rooms/room.h"

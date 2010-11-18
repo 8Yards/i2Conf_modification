@@ -112,6 +112,8 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 	
 	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
 		return false;
+	}else if(cmd.getCommandPacket()->getContent()->getMemObjectType() != "SipMessageContentMime"){
+		return false;//prajwol:: guys, we are not handling normal invite request here :)
 	}
 	
 	//get the room of that call
@@ -123,34 +125,6 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		//update tag
     	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
 		
-		//get the sdp in the invite
-    	//prajwol: B-) now howz that :P
-    	std::string objectType = cmd.getCommandPacket()->getContent()->getMemObjectType();
-    	if(objectType == "SdpPacket"){
-    		sdpInPacket = dynamic_cast <SdpPacket*> (*(cmd.getCommandPacket())->getContent());
-    	}else if(objectType == "SipMessageContentMime"){
-    		MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
-    		sdpInPacket = dynamic_cast <SdpPacket*> (*(sipMessage)->popFirstPart());
-
-
-    		MRef<SipMessageContentRCL*> rclMesssage = dynamic_cast <SipMessageContentRCL*> (*(sipMessage)->popFirstPart());
-    		std::vector<std::string> participants = rclMesssage->getParticipantList();
-
-    		std::vector <std::string>::const_iterator iter;
-			iter = participants.begin();
-			while(iter != participants.end()){
-				//make call -->
-				MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app);
-				CommandString inv(callClient->getCallId(), SipCommandString::invite, *iter);
-				SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-				getSipStack()->addDialog(callClient);
-				callClient->handleCommand(c);
-				//make call <--
-
-				iter++;
-			}
-    	}
-
 		//generate a 180 Ringing response
 		MRef<SipMessage*> resp = new SipResponse(180,"Ringing",(SipRequest*)*cmd.getCommandPacket());
 		MRef<SipHeaderValue *> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
@@ -161,7 +135,11 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		getSipStack()->enqueueCommand( SipSMCommand(resp,
 				SipSMCommand::dialog_layer,
 				SipSMCommand::transaction_layer));
-		
+
+		mimeInPacket = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
+   		sdpInPacket = dynamic_cast <SdpPacket*> (*(mimeInPacket)->popFirstPart());
+   		rclInPacket = dynamic_cast <SipMessageContentRCL*> (*(mimeInPacket)->popFirstPart());
+
 		
 		//Generate a 200 response	
 		//update tag
@@ -170,13 +148,18 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		
 		resp->addHeader( new SipHeader(*contact)); 
 		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
+		resp->getHeaderValueTo()->setParameter("confID", "some_random_value");//prajwol:: add that unique THING for conversation
 		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
 							getDialogConfig()->sipIdentity->getSipUri().getString())));
 		
-		
-
 		//add sdp
-		resp->setContent(dynamic_cast<SipMessageContent*> (*(room->getSdp()->getSdpPacket())));
+		MRef<SipMessageContentMime*> mimeContent = new SipMessageContentMime(
+					mimeInPacket->getContentTypeWithoutParameters(),
+					"",
+					mimeInPacket->getBoundry());
+		mimeContent->addPart(dynamic_cast<SipMessageContent*> (*(room->getSdp()->getSdpPacket())));
+		mimeContent->addPart(dynamic_cast<SipMessageContent*> (*rclInPacket));
+		resp->setContent(dynamic_cast<SipMessageContent*> (*mimeContent));
 		
 		//send the response
 		getSipStack()->enqueueCommand( SipSMCommand(resp, 
@@ -184,6 +167,22 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 				SipSMCommand::transaction_layer));
 		
 		room->addParticipant(dialogState.callId, sdpInPacket);
+
+		std::vector<std::string> participants = rclInPacket->getParticipantList();
+
+   		std::vector <std::string>::const_iterator iter;
+		iter = participants.begin();
+		while(iter != participants.end()){
+			//make call -->
+			MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app, dynamic_cast<SipMessageContent*> (*mimeContent));
+			CommandString inv(callClient->getCallId(), SipCommandString::invite, *iter);
+			SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+			getSipStack()->addDialog(callClient);
+			callClient->handleCommand(c);
+			//make call <--
+
+			iter++;
+		}
 		return true;
 	}
 	return false;
