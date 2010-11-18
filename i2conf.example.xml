@@ -3,10 +3,10 @@
 <use_udp>true</use_udp>
 <use_tcp>false</use_tcp>
 <sip_identity>
-  <uri>mcu@localhost</uri>
-  <local_port>5061</local_port>
+  <uri>mcu@192.16.124.217 </uri>
+  <local_port>5060</local_port>
   <register>true</register>
   <username>mcu</username>
   <password>pwd</password>
-  <realm>localhost</realm>
+  <realm>192.16.124.217</realm>
 </sip_identity>

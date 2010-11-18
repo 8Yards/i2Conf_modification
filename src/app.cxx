@@ -76,22 +76,44 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		bool ret = call->handleCommand(cmd);
 
 		//prajwol->test start here
-						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
-						CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@130.229.159.113");
-						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-						sipStack->addDialog(callClient);
-						callClient->handleCommand(c);
-
-						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
-						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "erik@130.229.159.113");
-						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-						sipStack->addDialog(callClient2);
-						callClient2->handleCommand(c2);
+//						MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+//						CommandString inv(callClient->getCallId(), SipCommandString::invite, "prajwol@192.16.124.217");
+//						SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//						sipStack->addDialog(callClient);
+//						callClient->handleCommand(c);
+//
+//						MRef<SipDialog*> callClient2 = new CallClient(sipStack, myIdentity, "", this);
+//						CommandString inv2(callClient2->getCallId(), SipCommandString::invite, "user@192.16.124.217");
+//						SipSMCommand c2(inv2, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//						sipStack->addDialog(callClient2);
+//						callClient2->handleCommand(c2);
 		//prajwol->test ends here
 
 		//massert(ret);
 		return ret;
-	}else {
+	}
+	else if (cmd.getCommandPacket()->getType() == "REFER" ) {
+
+		MRef<SipDialog*> call = new Call(sipStack,
+								myIdentity,
+								cmd.getCommandPacket()->getCallId(),
+								this);
+		lastCallId = call->getCallId();
+		calls[lastCallId] = dynamic_cast<Call*> (*call);
+		sipStack->addDialog(call);
+		bool ret = call->handleCommand(cmd);
+
+//		MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+//		CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@192.16.124.217");
+//		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//		sipStack->addDialog(callClient);
+//		callClient->handleCommand(c);
+
+
+
+		return true;
+	}
+	else {
 		cerr << "App: I don't know how to handle packet " << cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}
