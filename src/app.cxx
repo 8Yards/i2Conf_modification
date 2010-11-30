@@ -103,9 +103,9 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 		sipStack->addDialog(call);
 		bool ret = call->handleCommand(cmd);
 
-//		MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
-//		CommandString inv(callClient->getCallId(), SipCommandString::invite, "nina@192.16.124.217");
-//		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+		MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+		CommandString inv(callClient->getCallId(), SipCommandString::invite, cmd.getCommandPacket()->getHeaderValueNo(SIP_HEADER_TYPE_REFERTO,0)->getString());
+		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
 //		sipStack->addDialog(callClient);
 //		callClient->handleCommand(c);
 
