@@ -60,7 +60,13 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
 	State<SipSMCommand,string> *s_terminated = new State<SipSMCommand,string>(this,"terminated");
 	addState(s_terminated);
 	
+	/* added by Nina*/
+	//REFER received
+	State<SipSMCommand,string> *s_refer = new State<SipSMCommand,string>(this, "refer");
+	addState(s_refer) ;
+
 	
+
 	//from start to inConference
 	new StateTransition<SipSMCommand,string>(this,
 			"transition_start_inConference",
@@ -102,7 +108,24 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
 			"transition_anyState_terminated_cmd",
 			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::anyState_terminated_cmd, 
 			anyState, 
-			s_terminated);			
+			s_terminated);
+
+	/* added by nina */
+//	from inConference to refer received
+	new StateTransition<SipSMCommand,string>(this,
+			"transition_inConference_Refer",
+			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::inConference_Refer,
+			s_inConference,
+			s_refer);
+
+	/* added by nina */
+//	from inConference to refer received
+	new StateTransition<SipSMCommand,string>(this,
+			"transition_start_refer",
+			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::inConference_Refer,
+			s_start,
+			s_refer);
+
 }
 
 bool Call::start_inConference (const SipSMCommand &cmd) {
@@ -332,4 +355,70 @@ string Call::getName(){
 
 string Call::getUri() {
 	return getDialogConfig()->getContactUri(false).getString();
+}
+
+bool Call::inConference_Refer (const SipSMCommand &cmd) {
+
+	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
+			return false;
+		}
+
+
+	if (transitionMatch("REFER", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer)) {
+
+		dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
+
+		//Generate a 202 response
+
+		MRef<SipMessage*> resp = new SipResponse(200,"Ok",(SipRequest*)*cmd.getCommandPacket());
+		MRef<SipHeaderValue*> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
+						//update tag
+//		dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
+
+		resp->addHeader( new SipHeader(*contact));
+		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
+//		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
+//				getDialogConfig()->sipIdentity->getSipUri().getString())));
+
+		getSipStack()->enqueueCommand( SipSMCommand(resp,
+						SipSMCommand::dialog_layer,
+						SipSMCommand::transaction_layer));
+
+//		MRef<SipRequest*> inviteRequest = SipRequest::createSipMessageInvite(dialogState.callId, cmd.getCommandPacket()->getFrom(),getDialogConfig()->sipIdentity->getSipUri(),
+//				getDialogConfig()->sipIdentity->getSipUri(),dialogState.seqNo, getSipStack()) ;
+//
+//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *inviteRequest,
+//								SipSMCommand::dialog_layer,
+//								SipSMCommand::transaction_layer));
+
+
+
+//		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri) ; //getDialogConfig()->getContactUri());
+//
+//		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(), dialogState.remoteUri,
+//				  dialogState.seqNo,dialogState.callId);
+//		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(HEADER_USER_AGENT_DEFAULT)));
+//		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
+//
+//		req->addHeader(new SipHeader(new SipHeaderValueContact(getDialogConfig()->sipIdentity->getContactUri(getSipStack(), false)))) ;
+//
+//
+//		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Subscription-State", "active")));
+//
+////		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Record-Route", "<sip:192.16.124.217;lr=on>")));
+//
+////		req->addHeader(new SipHeader(new SIPHEADER))
+//		req->getHeaderValueTo()->setParameter("tag",dialogState.remoteTag);
+//		req->getHeaderValueFrom()->setParameter("tag",dialogState.localTag);
+//
+//		MRef <SipMessageContent*> content = new SipMessageContentUnknown("SIP/2.0 100 Trying", "message/sipfrag;version=2.0") ;
+//		req->setContent(content) ;
+//
+//		//send the response
+//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
+//				SipSMCommand::dialog_layer,
+//				SipSMCommand::transaction_layer));
+//
+//		dialogState.updateState(req);
+	}
 }
