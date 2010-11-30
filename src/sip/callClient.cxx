@@ -100,7 +100,8 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command){
 
 		getSipStack()->enqueueCommand(scmd, HIGH_PRIO_QUEUE);
 
-		MRef<SdpPacket*> sdpPack = dynamic_cast <SdpPacket*> (*(command.getCommandPacket())->getContent());
+		MRef<SipMessageContentMime*> mimeInPacket = dynamic_cast <SipMessageContentMime*> (*(command.getCommandPacket())->getContent());
+		MRef<SdpPacket*> sdpPack = dynamic_cast <SdpPacket*> (*(mimeInPacket)->popFirstPart());
 		myRoom->addParticipant(dialogState.callId, sdpPack);
 
 		return true;
