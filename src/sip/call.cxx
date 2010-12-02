@@ -33,6 +33,8 @@
 #include<libmsip/SipHeaderCSeq.h>
 #include<libmsip/SipHeaderContact.h>
 #include<libmsip/SipHeaderUnknown.h>
+#include<libmsip/SipHeaderUserAgent.h>
+#include<libmsip/SipHeaderEvent.h>
 
 #include<libmsip/SipCommandString.h>
 #include "callClient.h"
@@ -60,8 +62,8 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
 	
 	/* added by Nina*/
 	//REFER received
-	State<SipSMCommand,string> *s_refer = new State<SipSMCommand,string>(this, "refer");
-	addState(s_refer) ;
+//	State<SipSMCommand,string> *s_refer = new State<SipSMCommand,string>(this, "refer");
+//	addState(s_refer) ;
 
 	
 
@@ -109,20 +111,20 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App
 			s_terminated);
 
 	/* added by nina */
-//	from inConference to refer received
+//	from inConference to inConference refer received
 	new StateTransition<SipSMCommand,string>(this,
-			"transition_inConference_Refer",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::inConference_Refer,
+			"transition_inConference_inConference_REFER",
+			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::handle_refer,
 			s_inConference,
-			s_refer);
+			s_inConference);
 
 	/* added by nina */
-//	from inConference to refer received
+//	from start to inConference refer received
 	new StateTransition<SipSMCommand,string>(this,
-			"transition_start_refer",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::inConference_Refer,
+			"transition_start_inConeference_REFER",
+			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::handle_refer,
 			s_start,
-			s_refer);
+			s_inConference);
 
 }
 
@@ -135,7 +137,7 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 	
 	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
 		return false;
-	}else if(cmd.getCommandPacket()->getContent()->getMemObjectType() != "SipMessageContentMime"){
+	}else if(cmd.getCommandPacket()->getContentLength() >0 && cmd.getCommandPacket()->getContent()->getMemObjectType() != "SipMessageContentMime"){
 		return false;//prajwol:: guys, we are not handling normal invite request here :)
 	}
 	
@@ -177,7 +179,7 @@ bool Call::start_inConference (const SipSMCommand &cmd) {
 		
 		//add sdp
 		MRef<SipMessageContentMime*> mimeContent = new SipMessageContentMime(
-					mimeInPacket->getContentTypeWithoutParameters(),
+					mimeInPacket->getContentType(),
 					"",
 					mimeInPacket->getBoundry());
 		mimeContent->addPart(dynamic_cast<SipMessageContent*> (*(room->getSdp()->getSdpPacket())));
@@ -379,7 +381,7 @@ string Call::getUri() {
 	return getDialogConfig()->getContactUri(false).getString();
 }
 
-bool Call::inConference_Refer (const SipSMCommand &cmd) {
+bool Call::handle_refer (const SipSMCommand &cmd) {
 
 	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
 			return false;
@@ -394,53 +396,48 @@ bool Call::inConference_Refer (const SipSMCommand &cmd) {
 
 		MRef<SipMessage*> resp = new SipResponse(200,"Ok",(SipRequest*)*cmd.getCommandPacket());
 		MRef<SipHeaderValue*> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
-						//update tag
-//		dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-
 		resp->addHeader( new SipHeader(*contact));
 		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
 //		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
 //				getDialogConfig()->sipIdentity->getSipUri().getString())));
-
 		getSipStack()->enqueueCommand( SipSMCommand(resp,
 						SipSMCommand::dialog_layer,
 						SipSMCommand::transaction_layer));
 
-//		MRef<SipRequest*> inviteRequest = SipRequest::createSipMessageInvite(dialogState.callId, cmd.getCommandPacket()->getFrom(),getDialogConfig()->sipIdentity->getSipUri(),
-//				getDialogConfig()->sipIdentity->getSipUri(),dialogState.seqNo, getSipStack()) ;
-//
-//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *inviteRequest,
-//								SipSMCommand::dialog_layer,
-//								SipSMCommand::transaction_layer));
+//		send INVITE to sip uri in ReferTo
+		MRef<SipMessageContentMime*> mimeInPacket ;// = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
+		MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app, dynamic_cast<SipMessageContent*> (*mimeInPacket));
+		CommandString inv(callClient->getCallId(), SipCommandString::invite, cmd.getCommandPacket()->getHeaderValueNo(SIP_HEADER_TYPE_REFERTO,0)->getString());
+		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+		getSipStack()->addDialog(callClient);
+		callClient->handleCommand(c);
+
+//		send NOTIFY to the sender of REFER
+		/* to be fixed */
+
+		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri) ; //getDialogConfig()->getContactUri());
+
+		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(), dialogState.remoteUri,
+				  dialogState.seqNo,dialogState.callId);
+		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(HEADER_USER_AGENT_DEFAULT)));
+		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
+
+		req->addHeader(new SipHeader(new SipHeaderValueContact(getDialogConfig()->sipIdentity->getContactUri(getSipStack(), false)))) ;
 
 
+		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Subscription-State", "active;expires=3600")));
 
-//		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri) ; //getDialogConfig()->getContactUri());
-//
-//		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(), dialogState.remoteUri,
-//				  dialogState.seqNo,dialogState.callId);
-//		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(HEADER_USER_AGENT_DEFAULT)));
-//		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
-//
-//		req->addHeader(new SipHeader(new SipHeaderValueContact(getDialogConfig()->sipIdentity->getContactUri(getSipStack(), false)))) ;
-//
-//
-//		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Subscription-State", "active")));
-//
-////		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Record-Route", "<sip:192.16.124.217;lr=on>")));
-//
-////		req->addHeader(new SipHeader(new SIPHEADER))
-//		req->getHeaderValueTo()->setParameter("tag",dialogState.remoteTag);
-//		req->getHeaderValueFrom()->setParameter("tag",dialogState.localTag);
-//
-//		MRef <SipMessageContent*> content = new SipMessageContentUnknown("SIP/2.0 100 Trying", "message/sipfrag;version=2.0") ;
-//		req->setContent(content) ;
-//
-//		//send the response
-//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
-//				SipSMCommand::dialog_layer,
-//				SipSMCommand::transaction_layer));
-//
-//		dialogState.updateState(req);
+		req->getHeaderValueTo()->setParameter("tag",dialogState.remoteTag);
+		req->getHeaderValueFrom()->setParameter("tag",dialogState.localTag);
+
+		MRef <SipMessageContent*> content = new SipMessageContentUnknown("SIP/2.0 100 Trying", "message/sipfrag;version=2.0") ;
+		req->setContent(content) ;
+
+		//send the response
+		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
+				SipSMCommand::dialog_layer,
+				SipSMCommand::transaction_layer));
+
+		dialogState.updateState(req);
 	}
 }
