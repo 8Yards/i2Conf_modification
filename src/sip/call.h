@@ -50,6 +50,7 @@ class Call : public SipDialog{
 		bool anyState_terminated(const SipSMCommand &cmd);
 		bool anyState_terminated_cmd(const SipSMCommand &cmd);		
 
+		bool inConference_Refer(const SipSMCommand &cmd);
 	private:
 		MRef<SipIdentity*> myIdentity;
 		MRef<App*> app;

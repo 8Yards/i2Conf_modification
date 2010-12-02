@@ -82,7 +82,29 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 
 		//massert(ret);
 		return ret;
-	}else {
+	}
+	else if (cmd.getCommandPacket()->getType() == "REFER" ) {
+
+		MRef<SipDialog*> call = new Call(sipStack,
+								myIdentity,
+								cmd.getCommandPacket()->getCallId(),
+								this);
+		lastCallId = call->getCallId();
+		calls[lastCallId] = dynamic_cast<Call*> (*call);
+		sipStack->addDialog(call);
+		bool ret = call->handleCommand(cmd);
+
+		MRef<SipDialog*> callClient = new CallClient(sipStack, myIdentity, "" , this);
+		CommandString inv(callClient->getCallId(), SipCommandString::invite, cmd.getCommandPacket()->getHeaderValueNo(SIP_HEADER_TYPE_REFERTO,0)->getString());
+		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+//		sipStack->addDialog(callClient);
+//		callClient->handleCommand(c);
+
+
+
+		return true;
+	}
+	else {
 		cerr << "App: I don't know how to handle packet " << cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}

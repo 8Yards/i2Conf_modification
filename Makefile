@@ -85,11 +85,11 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run aclocal-1.11
-AMTAR = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run tar
-AUTOCONF = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run automake-1.11
+ACLOCAL = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run aclocal-1.11
+AMTAR = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run tar
+AUTOCONF = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run automake-1.11
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -114,7 +114,7 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = -lstrmanager -lboost_thread -llog4cxx -lminisip -lmsip -lmutil 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
 PACKAGE = i2conf
@@ -129,10 +129,10 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 VERSION = 0.8
-abs_builddir = /home/prajwol/workspace/i2Conf_modification
-abs_srcdir = /home/prajwol/workspace/i2Conf_modification
-abs_top_builddir = /home/prajwol/workspace/i2Conf_modification
-abs_top_srcdir = /home/prajwol/workspace/i2Conf_modification
+abs_builddir = /home/nina/eclipse/i2Conf_modification
+abs_srcdir = /home/nina/eclipse/i2Conf_modification
+abs_top_builddir = /home/nina/eclipse/i2Conf_modification
+abs_top_srcdir = /home/nina/eclipse/i2Conf_modification
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
@@ -152,7 +152,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/prajwol/workspace/i2Conf_modification/install-sh
+install_sh = ${SHELL} /home/nina/eclipse/i2Conf_modification/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -301,13 +301,13 @@ distclean-compile:
 include ./$(DEPDIR)/XMLConfig.Po
 include ./$(DEPDIR)/app.Po
 include ./$(DEPDIR)/call.Po
+include ./$(DEPDIR)/callClient.Po
 include ./$(DEPDIR)/codec.Po
 include ./$(DEPDIR)/main.Po
 include ./$(DEPDIR)/media.Po
 include ./$(DEPDIR)/participant.Po
 include ./$(DEPDIR)/room.Po
 include ./$(DEPDIR)/sdpDesc.Po
-include ./$(DEPDIR)/callClient.Po
 include ./$(DEPDIR)/timeoutController.Po
 
 .cxx.o:
