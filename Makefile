@@ -53,8 +53,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_i2conf_OBJECTS = app.$(OBJEXT) main.$(OBJEXT) \
 	timeoutController.$(OBJEXT) XMLConfig.$(OBJEXT) \
 	participant.$(OBJEXT) room.$(OBJEXT) codec.$(OBJEXT) \
-	media.$(OBJEXT) sdpDesc.$(OBJEXT) callClient.$(OBJEXT) \
-	call.$(OBJEXT)
+	media.$(OBJEXT) sdpDesc.$(OBJEXT) callOut.$(OBJEXT) \
+	callIn.$(OBJEXT)
 i2conf_OBJECTS = $(am_i2conf_OBJECTS)
 i2conf_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.
@@ -85,11 +85,11 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run aclocal-1.11
-AMTAR = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run tar
-AUTOCONF = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run automake-1.11
+ACLOCAL = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run aclocal-1.11
+AMTAR = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run tar
+AUTOCONF = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run automake-1.11
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -114,7 +114,7 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = -lstrmanager -lboost_thread -llog4cxx -lminisip -lmsip -lmutil 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/nina/eclipse/i2Conf_modification/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/prajwol/workspace/i2Conf_modification/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
 PACKAGE = i2conf
@@ -129,10 +129,10 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 VERSION = 0.8
-abs_builddir = /home/nina/eclipse/i2Conf_modification
-abs_srcdir = /home/nina/eclipse/i2Conf_modification
-abs_top_builddir = /home/nina/eclipse/i2Conf_modification
-abs_top_srcdir = /home/nina/eclipse/i2Conf_modification
+abs_builddir = /home/prajwol/workspace/i2Conf_modification
+abs_srcdir = /home/prajwol/workspace/i2Conf_modification
+abs_top_builddir = /home/prajwol/workspace/i2Conf_modification
+abs_top_srcdir = /home/prajwol/workspace/i2Conf_modification
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
@@ -152,7 +152,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/nina/eclipse/i2Conf_modification/install-sh
+install_sh = ${SHELL} /home/prajwol/workspace/i2Conf_modification/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -189,10 +189,10 @@ i2conf_SOURCES = src/app.cxx \
 		 src/sdp/media.h \
 		 src/sdp/sdpDesc.cxx \
 		 src/sdp/sdpDesc.h \
-		 src/sip/callClient.cxx \
-		 src/sip/callClient.h \
-		 src/sip/call.cxx \
-		 src/sip/call.h
+		 src/sip/callOut.cxx \
+		 src/sip/callOut.h \
+		 src/sip/callIn.cxx \
+		 src/sip/callIn.h
 
 EXTRA_DIST = conf log
 all: config.h
@@ -300,8 +300,8 @@ distclean-compile:
 
 include ./$(DEPDIR)/XMLConfig.Po
 include ./$(DEPDIR)/app.Po
-include ./$(DEPDIR)/call.Po
-include ./$(DEPDIR)/callClient.Po
+include ./$(DEPDIR)/callIn.Po
+include ./$(DEPDIR)/callOut.Po
 include ./$(DEPDIR)/codec.Po
 include ./$(DEPDIR)/main.Po
 include ./$(DEPDIR)/media.Po
@@ -450,33 +450,33 @@ sdpDesc.obj: src/sdp/sdpDesc.cxx
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sdpDesc.obj `if test -f 'src/sdp/sdpDesc.cxx'; then $(CYGPATH_W) 'src/sdp/sdpDesc.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sdp/sdpDesc.cxx'; fi`
 
-callClient.o: src/sip/callClient.cxx
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callClient.o -MD -MP -MF $(DEPDIR)/callClient.Tpo -c -o callClient.o `test -f 'src/sip/callClient.cxx' || echo '$(srcdir)/'`src/sip/callClient.cxx
-	$(am__mv) $(DEPDIR)/callClient.Tpo $(DEPDIR)/callClient.Po
-#	source='src/sip/callClient.cxx' object='callClient.o' libtool=no \
+callOut.o: src/sip/callOut.cxx
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callOut.o -MD -MP -MF $(DEPDIR)/callOut.Tpo -c -o callOut.o `test -f 'src/sip/callOut.cxx' || echo '$(srcdir)/'`src/sip/callOut.cxx
+	$(am__mv) $(DEPDIR)/callOut.Tpo $(DEPDIR)/callOut.Po
+#	source='src/sip/callOut.cxx' object='callOut.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callClient.o `test -f 'src/sip/callClient.cxx' || echo '$(srcdir)/'`src/sip/callClient.cxx
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callOut.o `test -f 'src/sip/callOut.cxx' || echo '$(srcdir)/'`src/sip/callOut.cxx
 
-callClient.obj: src/sip/callClient.cxx
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callClient.obj -MD -MP -MF $(DEPDIR)/callClient.Tpo -c -o callClient.obj `if test -f 'src/sip/callClient.cxx'; then $(CYGPATH_W) 'src/sip/callClient.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callClient.cxx'; fi`
-	$(am__mv) $(DEPDIR)/callClient.Tpo $(DEPDIR)/callClient.Po
-#	source='src/sip/callClient.cxx' object='callClient.obj' libtool=no \
+callOut.obj: src/sip/callOut.cxx
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callOut.obj -MD -MP -MF $(DEPDIR)/callOut.Tpo -c -o callOut.obj `if test -f 'src/sip/callOut.cxx'; then $(CYGPATH_W) 'src/sip/callOut.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callOut.cxx'; fi`
+	$(am__mv) $(DEPDIR)/callOut.Tpo $(DEPDIR)/callOut.Po
+#	source='src/sip/callOut.cxx' object='callOut.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callClient.obj `if test -f 'src/sip/callClient.cxx'; then $(CYGPATH_W) 'src/sip/callClient.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callClient.cxx'; fi`
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callOut.obj `if test -f 'src/sip/callOut.cxx'; then $(CYGPATH_W) 'src/sip/callOut.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callOut.cxx'; fi`
 
-call.o: src/sip/call.cxx
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT call.o -MD -MP -MF $(DEPDIR)/call.Tpo -c -o call.o `test -f 'src/sip/call.cxx' || echo '$(srcdir)/'`src/sip/call.cxx
-	$(am__mv) $(DEPDIR)/call.Tpo $(DEPDIR)/call.Po
-#	source='src/sip/call.cxx' object='call.o' libtool=no \
+callIn.o: src/sip/callIn.cxx
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callIn.o -MD -MP -MF $(DEPDIR)/callIn.Tpo -c -o callIn.o `test -f 'src/sip/callIn.cxx' || echo '$(srcdir)/'`src/sip/callIn.cxx
+	$(am__mv) $(DEPDIR)/callIn.Tpo $(DEPDIR)/callIn.Po
+#	source='src/sip/callIn.cxx' object='callIn.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o call.o `test -f 'src/sip/call.cxx' || echo '$(srcdir)/'`src/sip/call.cxx
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callIn.o `test -f 'src/sip/callIn.cxx' || echo '$(srcdir)/'`src/sip/callIn.cxx
 
-call.obj: src/sip/call.cxx
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT call.obj -MD -MP -MF $(DEPDIR)/call.Tpo -c -o call.obj `if test -f 'src/sip/call.cxx'; then $(CYGPATH_W) 'src/sip/call.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/call.cxx'; fi`
-	$(am__mv) $(DEPDIR)/call.Tpo $(DEPDIR)/call.Po
-#	source='src/sip/call.cxx' object='call.obj' libtool=no \
+callIn.obj: src/sip/callIn.cxx
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT callIn.obj -MD -MP -MF $(DEPDIR)/callIn.Tpo -c -o callIn.obj `if test -f 'src/sip/callIn.cxx'; then $(CYGPATH_W) 'src/sip/callIn.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callIn.cxx'; fi`
+	$(am__mv) $(DEPDIR)/callIn.Tpo $(DEPDIR)/callIn.Po
+#	source='src/sip/callIn.cxx' object='callIn.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o call.obj `if test -f 'src/sip/call.cxx'; then $(CYGPATH_W) 'src/sip/call.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/call.cxx'; fi`
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o callIn.obj `if test -f 'src/sip/callIn.cxx'; then $(CYGPATH_W) 'src/sip/callIn.cxx'; else $(CYGPATH_W) '$(srcdir)/src/sip/callIn.cxx'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

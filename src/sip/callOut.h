@@ -2,11 +2,11 @@
  * callClient.h
  *
  *  Created on: Nov 4, 2010
- *      Author: prajwol
+ *      Author: prajwol, nina
  */
 
-#ifndef CALLCLIENT_H_
-#define CALLCLIENT_H_
+#ifndef CALLOUT_H_
+#define CALLOUT_H_
 
 #include<libmsip/SipStack.h>
 #include<libmsip/SipDialog.h>
@@ -14,9 +14,9 @@
 class App;
 using namespace std;
 
-class CallClient: public SipDialog{
+class CallOut: public SipDialog{
 public:
-	CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app, MRef<SipMessageContent*> sipContent,
+	CallOut(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app, MRef<SipMessageContent*> sipContent,
 			string thread, string conversation);
 
 	string getName();

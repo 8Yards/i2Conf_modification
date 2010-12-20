@@ -19,7 +19,7 @@
  cout << "Room is empty\n" ;
  for (p_i=participants.begin(); p_i != participants.end(); ++p_i)
  {
- cout << "Call id " + p_i->second->getCallId() + "\n" ;
+ cout << "CallIn id " + p_i->second->getCallId() + "\n" ;
  }
  *   i2conf is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of

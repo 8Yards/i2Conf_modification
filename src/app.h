@@ -40,9 +40,9 @@
 #include<string>
 
 #include "sdp/sdpDesc.h"
-#include "sip/call.h"
 #include "config/XMLConfig.h"
-#include "sip/callClient.h"
+#include "sip/callIn.h"
+#include "sip/callOut.h"
 
 #define THREAD_ATTRIBUTE "thread"
 #define CONVERSATION_ATTRIBUTE "conv"
@@ -79,11 +79,9 @@ public:
 	Manager* getStreamManager();
 	int getFlowId();
 
-//	MRef<Call*> getCall(string callId);
-//	void addCallClient(MRef<CallClient*> client);
+	map<string, MRef<SipDialog*> > getDialogs();
 	void addDialog(MRef<SipDialog*> dialog);
 	MRef<SipDialog*> getDialog(string callId);
-//	MRef<CallClient*> getClientbyId(string id);
 
 private:
 	MRef<SipIdentity*> myIdentity;
@@ -96,9 +94,7 @@ private:
 	int mediaPort;
 	int flowId;
 
-//	map<string, MRef<Call*> > calls;
 	map<string, MRef<Room*> > rooms;
-//	map<string, MRef<CallClient*> > callClients;
 	map<string, MRef<SipDialog*> > dialogs;
 
 	Manager* sm;

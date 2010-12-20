@@ -17,9 +17,9 @@ i2conf_SOURCES = src/app.cxx \
 		 src/sdp/media.h \
 		 src/sdp/sdpDesc.cxx \
 		 src/sdp/sdpDesc.h \
-		 src/sip/callClient.cxx \
-		 src/sip/callClient.h \
-		 src/sip/call.cxx \
-		 src/sip/call.h
+		 src/sip/callOut.cxx \
+		 src/sip/callOut.h \
+		 src/sip/callIn.cxx \
+		 src/sip/callIn.h
 
 EXTRA_DIST = conf log

@@ -53,38 +53,26 @@ CommandString App::handleCommandResp(string subsystem, const CommandString &cmd)
 
 bool App::handleCommand(const SipSMCommand& cmd) {
 	massert(sipStack)
-		;
-
-	/**
+;	/**
 	 * To avoid mcu from crash, check cmd contains any
 	 * commandPacket or just the String (Error message)
 	 */
-	if (cmd.getType() != SipSMCommand::COMMAND_PACKET)
+	if (cmd.getType() != SipSMCommand::COMMAND_PACKET) {
 		return false;
+	}
 
-	/*MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
-	 //	cerr << "---" << endl << sipMessage->getContentType() << endl << sipMessage->getBoundry();
-	 MRef<SipMessageContent*> sipMessagePart1 = sipMessage->popFirstPart();
-	 MRef<SipMessageContent*> sipMessagePart2 = sipMessage->popFirstPart();
-	 //	cerr << "---" << endl << sipMessagePart1->getContentType() << endl;
-	 //	cerr << "---" << endl << sipMessagePart2->getContentType() << endl;
-	 cerr << "---" << endl << sipMessagePart2->getString() << endl;
-	 exit(-1);*/
-
-	//TODO refactor: remove if
 	if (cmd.getCommandPacket()->getType() == "INVITE") {
-		MRef<SipDialog*> call = new Call(sipStack, myIdentity,
+		MRef<SipDialog*> call = new CallIn(sipStack, myIdentity,
 				cmd.getCommandPacket()->getCallId(), this);
 		lastCallId = call->getCallId();
-//		calls[lastCallId] = dynamic_cast<Call*> (*call);
-		dialogs[lastCallId] = call ;
+		dialogs[lastCallId] = call;
 		sipStack->addDialog(call);
 		bool ret = call->handleCommand(cmd);
 		//massert(ret)
 		return ret;
 	} else {
 		cerr << "App:: I don't know how to handle packet "
-				<< cmd.getCommandPacket()->getType() << endl;
+		<< cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}
 
@@ -109,7 +97,7 @@ string App::getLastCallId() {
 }
 
 void App::removeCallId(string callId) {
-//	calls.erase(callId);
+	//	calls.erase(callId);
 	dialogs.erase(callId);
 }
 
@@ -120,14 +108,14 @@ MRef<Room*> App::getRoom(string threadId, string conversationId) {
 MRef<Room*> App::getRoom(string threadId, string conversationId,
 		bool createIfNotExist) {
 	MRef<Room*> room;
-	map<string, MRef<Room*> >::iterator iter = rooms.find(Room::getRoomId(threadId, conversationId));
+	map<string, MRef<Room*> >::iterator iter = rooms.find(Room::getRoomId(
+			threadId, conversationId));
 
 	if (iter == rooms.end() && createIfNotExist) {
 		cout << "new room created" << endl;
 		room = new Room(threadId, conversationId, "", this);
 		rooms[room->getId()] = room;
-	}
-	else {
+	} else {
 		room = iter->second;
 	}
 
@@ -151,10 +139,6 @@ int App::getMediaPort() {
 	mediaPort = mediaPort + 2;
 	return mediaPort - 2;
 }
-
-//string App::getUri(string callId) {
-//	return calls[callId]->getUri();
-//}
 
 void App::loadConfig(string configFile) {
 
@@ -240,23 +224,14 @@ MRef<Room*> App::replaceRoom(string threadId, string oldConvId,
 	return newRoom;
 }
 
-//MRef<Call*> App::getCall(string callId) {
-//	return calls[callId];
-//}
-
-//void App::addCallClient(MRef<CallClient*> client) {
-//	callClients[client->getCallId()] = client;
-//	sipStack->addDialog(dynamic_cast<SipDialog*> (*client));
-//}
+map<string, MRef<SipDialog*> > App::getDialogs() {
+	return this->dialogs;
+}
 
 void App::addDialog(MRef<SipDialog*> dialog) {
 	dialogs[dialog->getCallId()] = dialog;
 }
 
-//MRef<CallClient*> App::getClientbyId(string id) {
-//	return callClients[id];
-//}
-
 MRef<SipDialog*> App::getDialog(string callId) {
-	return dialogs.find(callId)->second ;
+	return dialogs.find(callId)->second;
 }

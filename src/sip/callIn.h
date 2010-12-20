@@ -22,8 +22,9 @@
  *             Erik Eliasson <eliasson@it.kth.se>
  */
 
-#ifndef CALL_H
-#define CALL_H
+#ifndef CALLIN_H
+#define CALLIN_H
+
 #include<libmsip/SipStack.h>
 #include<libmsip/SipDialog.h>
 #include <libminisip/signaling/sdp/SdpPacket.h>
@@ -36,9 +37,9 @@ class App;
 class Room;
 using namespace std;
 
-class Call : public SipDialog{
+class CallIn : public SipDialog{
 	public:
-		Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app);
+		CallIn(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app);
 
 		string getName();
 		string getUri();

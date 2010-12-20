@@ -7,7 +7,7 @@
 
 #include<string>
 
-#include "callClient.h"
+#include "callOut.h"
 
 #include<libmsip/SipTransitionUtils.h>
 #include<libmsip/SipHeaderMaxForwards.h>
@@ -21,7 +21,7 @@
 
 using namespace std;
 
-CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident,
+CallOut::CallOut(MRef<SipStack*> stack, MRef<SipIdentity*> ident,
 		string cid, MRef<App*> app, MRef<SipMessageContent*> sipContent,
 		string thread, string conversation) :
 	SipDialog(stack, ident, cid), myIdentity(ident), app(app), mySipContent(
@@ -36,32 +36,32 @@ CallClient::CallClient(MRef<SipStack*> stack, MRef<SipIdentity*> ident,
 	addState(s_calling);
 
 	State<SipSMCommand, string> *s_incall = new State<SipSMCommand, string> (
-			this, "incall");
+			this, "in-CallOut");
 	addState(s_incall);
 
 	new StateTransition<SipSMCommand, string> (
 			this,
 			"transition_start_calling_INVITE",
-			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallClient::start_calling_invite,
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallOut::start_calling_invite,
 			s_start, s_calling);
 
 	new StateTransition<SipSMCommand, string> (
 			this,
 			"transition_calling_incall_2xx",
-			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallClient::calling_incall_2xx,
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallOut::calling_incall_2xx,
 			s_calling, s_incall);
 
 	new StateTransition<SipSMCommand, string> (
 			this,
 			"transition_incall_calling_REFER",
-			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallClient::inCall_calling_refer,
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &CallOut::inCall_calling_refer,
 			s_incall, s_calling);
 
 	this->thread = thread;
 	this->conversation = conversation;
 }
 
-bool CallClient::start_calling_invite(const SipSMCommand &command) {
+bool CallOut::start_calling_invite(const SipSMCommand &command) {
 	if (transitionMatch(command, SipCommandString::invite,
 			SipSMCommand::dialog_layer, SipSMCommand::dialog_layer)) {
 		++dialogState.seqNo;
@@ -94,11 +94,11 @@ bool CallClient::start_calling_invite(const SipSMCommand &command) {
 	}
 }
 
-bool CallClient::inCall_calling_refer(const SipSMCommand &command) {
+bool CallOut::inCall_calling_refer(const SipSMCommand &command) {
 	return true;
 }
 
-bool CallClient::calling_incall_2xx(const SipSMCommand &command) {
+bool CallOut::calling_incall_2xx(const SipSMCommand &command) {
 	if (transitionMatchSipResponse("INVITE", command,
 			SipSMCommand::transaction_layer, SipSMCommand::dialog_layer, "2**")) {
 
@@ -131,19 +131,19 @@ bool CallClient::calling_incall_2xx(const SipSMCommand &command) {
 	}
 }
 
-string CallClient::getName() {
-	return "CallClient";
+string CallOut::getName() {
+	return "CallOut";
 }
 
-void CallClient::setMySipContent(MRef<SipMessageContent*> sipContent) {
+void CallOut::setMySipContent(MRef<SipMessageContent*> sipContent) {
 	this->mySipContent = sipContent;
 }
 
-void CallClient::setConversationId(string id) {
+void CallOut::setConversationId(string id) {
 	this->conversation = id;
 }
 
-MRef<SipRequest*> CallClient::getMyInvite() {
+MRef<SipRequest*> CallOut::getMyInvite() {
 	return myInvite;
 }
 

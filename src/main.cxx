@@ -90,6 +90,14 @@ int ua_main(int argc, char **argv) {
 				app->sipStack->handleCommand(cmd);
 			} else if (line.substr(0, 6) == "printm") {
 				cout << app->getStreamManager()->printManagement() << endl;
+			} else if (line.substr(0, 7) == "dialogs") {
+				map<string, MRef<SipDialog*> > dialogs = app->getDialogs();
+				map<string, MRef<SipDialog*> >::iterator iter;
+
+				cout << "Dialogs count: " << dialogs.size() << endl;
+				for (iter = dialogs.begin(); iter != dialogs.end(); iter++) {
+					cout << iter->second->getName() << " " << iter->second->getCallId() << endl;
+				}
 			} else if (line.substr(0, 5) == "rooms") {
 				map<string, MRef<Room*> > rooms = app->getRooms();
 				map<string, MRef<Room*> >::iterator iter;
@@ -116,7 +124,6 @@ int ua_main(int argc, char **argv) {
 								<< endl;
 					}
 				}
-
 			} else if (line.substr(0, 3) == "del") {
 				string callId = trim(line.substr(3));
 

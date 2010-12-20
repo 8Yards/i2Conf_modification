@@ -24,7 +24,7 @@
 #ifndef ROOM_H
 #define ROOM_H
 
-#include "../sip/call.h"
+#include "../sip/callIn.h"
 #include "../sdp/sdpDesc.h"
 #include "participant.h"
 
