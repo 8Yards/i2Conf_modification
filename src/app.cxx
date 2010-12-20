@@ -39,8 +39,8 @@ App::App(string configFile) {
 	sm = new Manager();
 	loadConfig(configFile);
 
-	MRef<TimeoutController*> tc = new TimeoutController(rooms,sm,*sipStack);
-//	Thread tController(*tc);
+	MRef<TimeoutController*> tc = new TimeoutController(rooms, sm, *sipStack);
+	//	Thread tController(*tc);
 }
 
 void App::handleCommand(string subsystem, const CommandString &cmd) {
@@ -52,53 +52,54 @@ CommandString App::handleCommandResp(string subsystem, const CommandString &cmd)
 }
 
 bool App::handleCommand(const SipSMCommand& cmd) {
-	massert(sipStack);
-	
-	/**
-    	* To avoid mcu from crash, check cmd contains any
-    	* commandPacket or just the String (Error message)
-    	*/
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET )
-		return false;
-	
-	/*MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
-	//	cerr << "---" << endl << sipMessage->getContentType() << endl << sipMessage->getBoundry();
-	MRef<SipMessageContent*> sipMessagePart1 = sipMessage->popFirstPart();
-	MRef<SipMessageContent*> sipMessagePart2 = sipMessage->popFirstPart();
-	//	cerr << "---" << endl << sipMessagePart1->getContentType() << endl;
-	//	cerr << "---" << endl << sipMessagePart2->getContentType() << endl;
-	cerr << "---" << endl << sipMessagePart2->getString() << endl;
-	exit(-1);*/
+	massert(sipStack)
+		;
 
-	if (cmd.getCommandPacket()->getType()=="INVITE" || cmd.getCommandPacket()->getType()=="REFER"){   //Act as a server
-		MRef<SipDialog*> call = new Call(sipStack,
-						myIdentity, 
-						cmd.getCommandPacket()->getCallId(), 
-						this);		
+	/**
+	 * To avoid mcu from crash, check cmd contains any
+	 * commandPacket or just the String (Error message)
+	 */
+	if (cmd.getType() != SipSMCommand::COMMAND_PACKET)
+		return false;
+
+	/*MRef<SipMessageContentMime*> sipMessage = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
+	 //	cerr << "---" << endl << sipMessage->getContentType() << endl << sipMessage->getBoundry();
+	 MRef<SipMessageContent*> sipMessagePart1 = sipMessage->popFirstPart();
+	 MRef<SipMessageContent*> sipMessagePart2 = sipMessage->popFirstPart();
+	 //	cerr << "---" << endl << sipMessagePart1->getContentType() << endl;
+	 //	cerr << "---" << endl << sipMessagePart2->getContentType() << endl;
+	 cerr << "---" << endl << sipMessagePart2->getString() << endl;
+	 exit(-1);*/
+
+	//TODO refactor: remove if
+	if (cmd.getCommandPacket()->getType() == "INVITE") {
+		MRef<SipDialog*> call = new Call(sipStack, myIdentity,
+				cmd.getCommandPacket()->getCallId(), this);
 		lastCallId = call->getCallId();
-		calls[lastCallId] = dynamic_cast<Call*> (*call);
+//		calls[lastCallId] = dynamic_cast<Call*> (*call);
+		dialogs[lastCallId] = call ;
 		sipStack->addDialog(call);
 		bool ret = call->handleCommand(cmd);
-
-		//massert(ret);
+		//massert(ret)
 		return ret;
-	}
-	else {
-		cerr << "App: I don't know how to handle packet " << cmd.getCommandPacket()->getType() << endl;
+	} else {
+		cerr << "App:: I don't know how to handle packet "
+				<< cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}
-	
+
 	return true;
 }
 
-
 void App::run() {
-	if(sipRegister) {
-		MRef<SipDialog*> reg = new SipDialogRegister(sipStack,myIdentity);
+	if (sipRegister) {
+		MRef<SipDialog*> reg = new SipDialogRegister(sipStack, myIdentity);
 		sipStack->addDialog(*reg);
-		reg->handleCommand(SipSMCommand(CommandString(reg->getCallId(),SipCommandString::proxy_register), SipSMCommand::dialog_layer, SipSMCommand::dialog_layer));
+		reg->handleCommand(SipSMCommand(CommandString(reg->getCallId(),
+				SipCommandString::proxy_register), SipSMCommand::dialog_layer,
+				SipSMCommand::dialog_layer));
 	}
-	
+
 	//Run the SipStack
 	sipStack->run();
 }
@@ -108,40 +109,33 @@ string App::getLastCallId() {
 }
 
 void App::removeCallId(string callId) {
-	calls.erase(callId);
+//	calls.erase(callId);
+	dialogs.erase(callId);
 }
 
-MRef<Room* > App::getRoom(string id) {
-	return rooms[id];
+MRef<Room*> App::getRoom(string threadId, string conversationId) {
+	return getRoom(threadId, conversationId, false);
 }
+
+MRef<Room*> App::getRoom(string threadId, string conversationId,
+		bool createIfNotExist) {
+	MRef<Room*> room;
+	map<string, MRef<Room*> >::iterator iter = rooms.find(Room::getRoomId(threadId, conversationId));
+
+	if (iter == rooms.end() && createIfNotExist) {
+		cout << "new room created" << endl;
+		room = new Room(threadId, conversationId, "", this);
+		rooms[room->getId()] = room;
+	}
+	else {
+		room = iter->second;
+	}
+
+	return room;
+}
+
 map<string, MRef<Room*> > App::getRooms() {
 	return rooms;
-}
-void App::addRoom(string id, string description) {
-	rooms[id] = new Room(id,description,this);
-}
-
-string App::readRoom(string toUri) {
-
-	string::size_type pos = toUri.find(";room="); //type4-64bits
-	
-	if(pos == toUri.npos) {
-		return "default";
-	}
-	
-	string room = toUri.substr(pos+6);
-	
-	pos = room.find(";");
-	if(pos != room.npos) {
-		room = room.substr(0,pos);
-	}
-	
-	pos = room.find(">");
-	if(pos != room.npos) {
-		room = room.substr(0,pos);
-	}
-	
-	return room;
 }
 
 Manager* App::getStreamManager() {
@@ -155,122 +149,114 @@ int App::getFlowId() {
 
 int App::getMediaPort() {
 	mediaPort = mediaPort + 2;
-	return mediaPort-2;
+	return mediaPort - 2;
 }
 
-string App::getUri(string callId) {
-	return calls[callId]->getUri();
-}
+//string App::getUri(string callId) {
+//	return calls[callId]->getUri();
+//}
 
 void App::loadConfig(string configFile) {
-	
+
 	//read data from the XML config file
 	MRef<XMLConfig*> xmlc = new XMLConfig(configFile);
-	
-	useUdp = xmlc->readBool("use_udp",true);
-	useTcp = xmlc->readBool("use_tcp",false);
-	string interface = xmlc->readString("interface","eth0");
-		
-	sipPort = xmlc->readInt("sip_identity/local_port",5060);
-	string uri = xmlc->readString("sip_identity/uri","");
-	sipRegister = xmlc->readBool("sip_identity/register",false);
-	string user = xmlc->readString("sip_identity/username","");
-	string passwd = xmlc->readString("sip_identity/password","");
-	string realm = xmlc->readString("sip_identity/realm","");
-	string proxy_address = xmlc->readString("sip_identity/proxy_address",realm);
-	string proxy_protocol = xmlc->readString("sip_identity/proxy_protocol","udp");
-	int proxy_port = xmlc->readInt("sip_identity/proxy_port",5060);
-	
+
+	useUdp = xmlc->readBool("use_udp", true);
+	useTcp = xmlc->readBool("use_tcp", false);
+	string interface = xmlc->readString("interface", "eth0");
+
+	sipPort = xmlc->readInt("sip_identity/local_port", 5060);
+	string uri = xmlc->readString("sip_identity/uri", "");
+	sipRegister = xmlc->readBool("sip_identity/register", false);
+	string user = xmlc->readString("sip_identity/username", "");
+	string passwd = xmlc->readString("sip_identity/password", "");
+	string realm = xmlc->readString("sip_identity/realm", "");
+	string proxy_address =
+			xmlc->readString("sip_identity/proxy_address", realm);
+	string proxy_protocol = xmlc->readString("sip_identity/proxy_protocol",
+			"udp");
+	int proxy_port = xmlc->readInt("sip_identity/proxy_port", 5060);
+
 	//SipStack config
 	MRef<SipStackConfig*> config = new SipStackConfig;
 	config->preferedLocalSipPort = sipPort;
 	config->preferedLocalSipsPort = 0;
-	config->localIpString=NetworkFunctions::getInterfaceIPStr(interface);
+	config->localIpString = NetworkFunctions::getInterfaceIPStr(interface);
 	sipStack = new SipStack(config);
-	sipStack->setDebugPrintPackets(true);
+	sipStack->setDebugPrintPackets(false);
 	sipStack->setDefaultDialogCommandHandler(this);
 	sipStack->setCallback(this); //set this dialog as the default callback
 	sipStack->setTransactionHandlesAck(true); //get the ACK messages in the Dialog Layer
-		
+
 	//start the servers
-	if (!(useUdp||useTcp)) {
+	if (!(useUdp || useTcp)) {
 		useUdp = true;
 	}
-	if (useUdp){
+	if (useUdp) {
 		sipStack->startUdpServer();
 	}
-	if (useTcp){
+	if (useTcp) {
 		sipStack->startTcpServer();
 	}
-	
+
 	//set the user identity
 	string proto;
-	if(useTcp) {
+	if (useTcp) {
 		proto = "TCP";
 	}
-	if(useUdp) {
+	if (useUdp) {
 		proto = "UDP";
 	}
-	
-	myIdentity= new SipIdentity(SipUri(uri));
-	myIdentity->setSipRegistrar(new SipRegistrar(SipUri(uri).getIp(), proto));
-	
-	if(sipRegister) {
-		string proxy = realm;
-		if(proxy_address != realm) {
-			proxy = proxy_address;
-			myIdentity->setSipProxy(false, uri, proxy_protocol, proxy, proxy_port);
-		}
-		
-		myIdentity->setCredential(new SipCredential(user,passwd,proxy));
-	}
-	
-	//In order to deal with sdp, we need a factory
-	SipMessage::contentFactories.addFactory("application/sdp", sdpSipMessageContentFactory);
-	SipMessage::contentFactories.addFactory("application/resource-lists+xml", SipRCLContentFactory);
-	
-	//add default room
-	MRef<Room*> defaultRoom = new Room("default", "Public conference room", this);
-	
-	//authorize all sip uris in the conference
-	defaultRoom->authorize("*");
-	
-	//Create SDP description for the room
-	defaultRoom->setSdp(new SdpDesc(0, "i2conf", sipStack->getStackConfig()->localIpString, "Conference " + defaultRoom->getId() + ": " + defaultRoom->getDescription(), "", 0, 0));	
-	
-	//Add audio media
-	MRef<Media*> audio = new Media("audio", /*getMediaPort()*/5568, "RTP/AVP", sipStack->getStackConfig()->localIpString);
-		//speex
-		MRef<Codec*> codec = new Codec("Speex", "119", "speex");
-		codec->addAttribute("16000");
-		audio->addCodec(codec);
-		
-		//PCMU
-		codec = new Codec("G711 PCMU", "0", "PCMU");
-		codec->addAttribute("8000");
-		codec->addAttribute("1");
-		audio->addCodec(codec);
 
-		//PCMA
-		codec = new Codec("G711 PCMA", "8", "PCMA");
-		codec->addAttribute("8000");
-		codec->addAttribute("1");
-		audio->addCodec(codec);
-	
-	defaultRoom->getSdp()->addMedia(audio);
-	
-	MRef<Media*> video = new Media("video", /*getMediaPort()*/ 5566, "RTP/AVP", sipStack->getStackConfig()->localIpString);
-		
-		//H264
-		codec = new Codec("H264", "99", "H264");
-		codec->addAttribute("90000");
-		video->addCodec(codec);
-		
-		video->addAttribute("fmtp:99 profile-level-id=644028");
-		
-	defaultRoom->getSdp()->addMedia(video);
-	
-	
-	
-	rooms["default"] = defaultRoom;
+	myIdentity = new SipIdentity(SipUri(uri));
+	myIdentity->setSipRegistrar(new SipRegistrar(SipUri(uri).getIp(), proto));
+
+	if (sipRegister) {
+		string proxy = realm;
+		if (proxy_address != realm) {
+			proxy = proxy_address;
+			myIdentity->setSipProxy(false, uri, proxy_protocol, proxy,
+					proxy_port);
+		}
+
+		myIdentity->setCredential(new SipCredential(user, passwd, proxy));
+	}
+
+	//In order to deal with sdp, we need a factory
+	SipMessage::contentFactories.addFactory("application/sdp",
+			sdpSipMessageContentFactory);
+	SipMessage::contentFactories.addFactory("application/resource-lists+xml",
+			SipRCLContentFactory);
+}
+
+MRef<Room*> App::replaceRoom(string threadId, string oldConvId,
+		string newConvId) {
+	MRef<Room*> newRoom = *getRoom(threadId, oldConvId);
+	rooms.erase(newRoom->getId());
+
+	newRoom->setConversationId(newConvId);
+	rooms[newRoom->getId()] = newRoom;
+
+	return newRoom;
+}
+
+//MRef<Call*> App::getCall(string callId) {
+//	return calls[callId];
+//}
+
+//void App::addCallClient(MRef<CallClient*> client) {
+//	callClients[client->getCallId()] = client;
+//	sipStack->addDialog(dynamic_cast<SipDialog*> (*client));
+//}
+
+void App::addDialog(MRef<SipDialog*> dialog) {
+	dialogs[dialog->getCallId()] = dialog;
+}
+
+//MRef<CallClient*> App::getClientbyId(string id) {
+//	return callClients[id];
+//}
+
+MRef<SipDialog*> App::getDialog(string callId) {
+	return dialogs.find(callId)->second ;
 }

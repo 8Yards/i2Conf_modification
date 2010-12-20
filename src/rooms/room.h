@@ -37,29 +37,43 @@ class streamManager;
 class App;
 using namespace std;
 
+const MRef<Room*> NULL_ROOM = NULL;
+
 class Room : public MObject {
 	public:
-		Room(string id, string description, MRef<App*> app);
+		Room(string threadId, string conversationId, string description, MRef<App*> app);
 		
+		void addParticipant(string uri, string callId, MRef<SdpPacket*> sdp);
+		void delParticipant(string callId);
+		bool existsParticipant(string callId);
+		map <string,MRef<Participant*> > getParticipants();
+
+		void authorize(string uri);
+		void unauthorize(string uri);
+		bool isAuthorized(string uri);
+
 		string getId();
-		void setId(string id);
+		string getThreadId();
+		string getRcl();
+
+		string getConversationId();
+		void setConversationId(string conversationId);
 		
 		string getDescription();
 		void setDescription(string id);
 		
-		void addParticipant(string callId, MRef<SdpPacket*> sdp);
-		void delParticipant(string callId);
-		map <string,MRef<Participant*> > getParticipants();
-		
-		void authorize(string uri);
-		void unauthorize(string uri);
-		bool isAuthorized(string uri);
-		
+		MRef<SdpDesc*> createNewSdpDesc();
+
 		MRef<SdpDesc*> getSdp();
-		void setSdp(MRef<SdpDesc*> sdp);
-		
+//		void setSdp(MRef<SdpDesc*> sdp);
+
+		static string getRoomId(string threadId, string conversationId);
+
+		MRef<SipMessageContentMime*> getMimePacket();
+		void setMimePacket(MRef<SipMessageContentMime*> mimePacket);
+
 	private:
-		string id, description;
+		string threadId, conversationId, description;
 		map <string,int> authUris;
 			/*
 			**	URI		Allowed
@@ -67,11 +81,10 @@ class Room : public MObject {
 			**	*@minisip.org	1	->>>> Authorized
 			*/
 		map <string,MRef<Participant*> > participants;
+		MRef<SipMessageContentMime*> mimePacket;
 		MRef<SdpDesc*> fixedSdp;
-		
 		MRef<App*> app;
-		
-		
+
 };
 #include <libstrmanager/Manager.h>
 #include "../app.h"

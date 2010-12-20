@@ -39,58 +39,70 @@
 
 #include<string>
 
+#include "sdp/sdpDesc.h"
 #include "sip/call.h"
 #include "config/XMLConfig.h"
+#include "sip/callClient.h"
 
-
+#define THREAD_ATTRIBUTE "thread"
+#define CONVERSATION_ATTRIBUTE "conv"
+#define OLD_CONVERSATION_ATTRIBUTE "newvalue"
 
 class Room;
 using namespace std;
 
-class App : public SipDefaultHandler, public Runnable {
-	public:
-		App(string configFile);
+class App: public SipDefaultHandler, public Runnable {
+public:
+	App(string configFile);
 
+	bool handleCommand(const SipSMCommand& cmd);
 
-		bool handleCommand(const SipSMCommand& cmd);
+	void handleCommand(string subsystem, const CommandString &cmd);
+	CommandString handleCommandResp(string subsystem, const CommandString &cmd);
 
-		void handleCommand(string subsystem, const CommandString &cmd);
-		CommandString handleCommandResp(string subsystem, const CommandString &cmd);
+	void run();
+	string getLastCallId();
 
+	MRef<SipStack*> sipStack;
 
-		void run();
-		string getLastCallId();
-		
-		MRef<SipStack*> sipStack;
-		
-		MRef<Room* > getRoom(string id);
-		map<string, MRef<Room*> > getRooms();
-		void addRoom(string id, string description);
-		string readRoom(string toUri);
-		void removeCallId(string callId);
-		
-		int getMediaPort();
-		string getUri(string callId);
-		
-		Manager* getStreamManager();
-		int getFlowId();	
-		
-	private:
-		MRef<SipIdentity*> myIdentity;
-		bool useUdp;
-		bool useTcp;
-		bool sipRegister;
-		string lastCallId;
-		int sipPort;
-		int mediaPort;
-		int flowId;
-		
-		map<string, MRef<Call*> > calls;
-		map<string,MRef<Room*> > rooms;
-		
-		Manager* sm;
-		
-		void loadConfig(string configFile);
+	map<string, MRef<Room*> > getRooms();
+	MRef<Room*> getRoom(string threadId, string conversationId);
+	MRef<Room*> getRoom(string threadId, string conversationId,
+			bool createIfNotExist);
+	MRef<Room*>
+			replaceRoom(string threadId, string oldConvId, string newConvId);
+	void removeCallId(string callId);
+
+	int getMediaPort();
+	string getUri(string callId);
+
+	Manager* getStreamManager();
+	int getFlowId();
+
+//	MRef<Call*> getCall(string callId);
+//	void addCallClient(MRef<CallClient*> client);
+	void addDialog(MRef<SipDialog*> dialog);
+	MRef<SipDialog*> getDialog(string callId);
+//	MRef<CallClient*> getClientbyId(string id);
+
+private:
+	MRef<SipIdentity*> myIdentity;
+	bool useUdp;
+	bool useTcp;
+	bool sipRegister;
+
+	string lastCallId;
+	int sipPort;
+	int mediaPort;
+	int flowId;
+
+//	map<string, MRef<Call*> > calls;
+	map<string, MRef<Room*> > rooms;
+//	map<string, MRef<CallClient*> > callClients;
+	map<string, MRef<SipDialog*> > dialogs;
+
+	Manager* sm;
+	void loadConfig(string configFile);
 };
 #include "rooms/room.h"
 #endif

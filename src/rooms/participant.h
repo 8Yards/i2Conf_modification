@@ -47,6 +47,7 @@ class Flow : public MObject {
 		string ip;
 		int port;
 		string mediaType;
+
 };
 
 class ToFlow : public Flow {
@@ -73,7 +74,7 @@ class EndPoint : public MObject {
 
 class Participant : public MObject {
 	public:
-		Participant(string callId, Manager* sm);
+		Participant(string uri, string callId, Manager* sm);
 		void addFlowTo(MRef<ToFlow*> flow);
 		void delFlowTo(MRef<ToFlow*> flow);
 		void addFlowFrom(MRef<Flow*> flow);
@@ -86,8 +87,10 @@ class Participant : public MObject {
 		list<MRef<EndPoint*> > getContactInfo();
 		bool isMediaTypeCI(string mediaType);
 		string getIp4Media(string mediaType);
+		string getUri();
 	
 	private:
+		string uri;
 		string callId;
 		Manager* sm;
 		list<MRef<EndPoint*> > contactInfo; //<mediaType,EndPoint>

@@ -41,222 +41,343 @@
 
 using namespace std;
 
-Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<App*> app):
+Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<
+		App*> app) :
 	SipDialog(stack, ident, cid), myIdentity(ident), app(app) {
-	
-	//start state
-	State<SipSMCommand,string> *s_start = new State<SipSMCommand,string>(this,"start");
-	addState(s_start);
-	
-	//inCoference state
-	State<SipSMCommand,string> *s_inConference = new State<SipSMCommand,string>(this,"inConference");
-	addState(s_inConference);
-	
-	//waitingForByeResponse state
-	State<SipSMCommand,string> *s_waitingForByeResponse = new State<SipSMCommand,string>(this,"waitingForByeResponse");
-	addState(s_waitingForByeResponse);
-	
-	//terminated state
-	State<SipSMCommand,string> *s_terminated = new State<SipSMCommand,string>(this,"terminated");
-	addState(s_terminated);
-	
-	/* added by Nina*/
-	//REFER received
-//	State<SipSMCommand,string> *s_refer = new State<SipSMCommand,string>(this, "refer");
-//	addState(s_refer) ;
 
-	
+	//start state
+	State<SipSMCommand, string> *s_start = new State<SipSMCommand, string> (
+			this, "start");
+	addState(s_start);
+
+	//inCoference state
+	State<SipSMCommand, string> *s_inConference = new State<SipSMCommand,
+			string> (this, "inConference");
+	addState(s_inConference);
+
+	//waitingForByeResponse state
+	State<SipSMCommand, string> *s_waitingForByeResponse = new State<
+			SipSMCommand, string> (this, "waitingForByeResponse");
+	addState(s_waitingForByeResponse);
+
+	//terminated state
+	State<SipSMCommand, string> *s_terminated =
+			new State<SipSMCommand, string> (this, "terminated");
+	addState(s_terminated);
 
 	//from start to inConference
-	new StateTransition<SipSMCommand,string>(this,
+	new StateTransition<SipSMCommand, string> (
+			this,
 			"transition_start_inConference",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::start_inConference, 
-			s_start,
-			s_inConference);		
-	
-			
-	//from start to terminated when an INVITE is received, but not all conditions are fulfilled
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_start_terminated_INVITE",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::start_terminated_INVITE, 
-			s_start,
-			s_terminated);
-	
-	//from inConference to waitingForByeResponse when a BYE is sent
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_inConference_waitingForByeResponse_BYEOut",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::inConference_waitingForByeResponse_BYEOut, 
-			s_inConference, 
-			s_waitingForByeResponse);
-	
-	//from waitingForByeResponse to terminated when a BYE response (200 OK) is received
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_waitingForByeResponse_terminated_200",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::waitingForByeResponse_terminated_200, 
-			s_waitingForByeResponse, 
-			s_terminated);
-	
-	//from anystate to terminated when a BYE or a 4XX or 6XX is received
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_anyState_terminated",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::anyState_terminated, 
-			anyState, 
-			s_terminated);
-			
-	//from anystate to terminated when a terminate command is received
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_anyState_terminated_cmd",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::anyState_terminated_cmd, 
-			anyState, 
-			s_terminated);
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::start_inConference,
+			s_start, s_inConference);
 
 	/* added by nina */
-//	from inConference to inConference refer received
-	new StateTransition<SipSMCommand,string>(this,
+	//	from inConference to inConference refer received
+	new StateTransition<SipSMCommand, string> (
+			this,
 			"transition_inConference_inConference_REFER",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::handle_refer,
-			s_inConference,
-			s_inConference);
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::inConference_REFER,
+			s_inConference, s_inConference);
 
-	/* added by nina */
-//	from start to inConference refer received
-	new StateTransition<SipSMCommand,string>(this,
-			"transition_start_inConeference_REFER",
-			(bool (StateMachine<SipSMCommand,string>::*)(const SipSMCommand&)) &Call::handle_refer,
-			s_start,
-			s_inConference);
+	//from start to terminated when an INVITE is received, but not all conditions are fulfilled
+	new StateTransition<SipSMCommand, string> (
+			this,
+			"transition_start_terminated_INVITE",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::start_terminated_INVITE,
+			s_start, s_terminated);
+
+	//from inConference to waitingForByeResponse when a BYE is sent
+	new StateTransition<SipSMCommand, string> (
+			this,
+			"transition_inConference_waitingForByeResponse_BYEOut",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::inConference_waitingForByeResponse_BYEOut,
+			s_inConference, s_waitingForByeResponse);
+
+	//from waitingForByeResponse to terminated when a BYE response (200 OK) is received
+	new StateTransition<SipSMCommand, string> (
+			this,
+			"transition_waitingForByeResponse_terminated_200",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::waitingForByeResponse_terminated_200,
+			s_waitingForByeResponse, s_terminated);
+
+	//from anystate to terminated when a BYE or a 4XX or 6XX is received
+	new StateTransition<SipSMCommand, string> (
+			this,
+			"transition_anyState_terminated",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::anyState_terminated,
+			anyState, s_terminated);
+
+	//from anystate to terminated when a terminate command is received
+	new StateTransition<SipSMCommand, string> (
+			this,
+			"transition_anyState_terminated_cmd",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::anyState_terminated_cmd,
+			anyState, s_terminated);
 
 }
 
-bool Call::start_inConference (const SipSMCommand &cmd) {
-
-	/**
-	* To avoid mcu from crash, check cmd contains any
-	* commandPacket or just the String (Error message)
-	*/	
-	
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
+bool Call::start_inConference(const SipSMCommand &cmd) {
+	//	TODO check if it does not crash without checking if it's a command packet
+	if (!transitionMatch("INVITE", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer)) {
 		return false;
-	}else if(cmd.getCommandPacket()->getContentLength() >0 && cmd.getCommandPacket()->getContent()->getMemObjectType() != "SipMessageContentMime"){
-		return false;//prajwol:: guys, we are not handling normal invite request here :)
 	}
-	
-	//get the room of that call
-	room = app->getRoom(app->readRoom(cmd.getCommandPacket()->getTo().getString()));
 
-	if (transitionMatch("INVITE", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer) && 
-		room->isAuthorized(cmd.getCommandPacket()->getFrom().getUserIpString())) {
-		
-		//update tag
-    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-		
-		//generate a 180 Ringing response
-		MRef<SipMessage*> resp = new SipResponse(180,"Ringing",(SipRequest*)*cmd.getCommandPacket());
-		MRef<SipHeaderValue *> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
-		resp->addHeader( new SipHeader(*contact));
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
+	MRef<SipMessage*> commandPacket = cmd.getCommandPacket();
+	if (commandPacket->getContentLength() > 0
+			&& commandPacket->getContent()->getMemObjectType()
+					!= "SipMessageContentMime") {
+		return false;
+	}
 
-		//send the response
-		getSipStack()->enqueueCommand( SipSMCommand(resp,
-				SipSMCommand::dialog_layer,
-				SipSMCommand::transaction_layer));
+	MRef<SipMessageContentMime*>
+			mimeInPacket =
+					dynamic_cast<SipMessageContentMime*> (*(commandPacket->getContent()));
+	MRef<SdpPacket*> sdpInPacket =
+			dynamic_cast<SdpPacket*> (*(mimeInPacket)->popFirstPart());
+	MRef<SipMessageContentRCL*>
+			rclInPacket =
+					dynamic_cast<SipMessageContentRCL*> (*(mimeInPacket)->popFirstPart());
 
-		mimeInPacket = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
-   		sdpInPacket = dynamic_cast <SdpPacket*> (*(mimeInPacket)->popFirstPart());
-   		rclInPacket = dynamic_cast <SipMessageContentRCL*> (*(mimeInPacket)->popFirstPart());
+	string thread = commandPacket->getHeaderValueTo()->getParameter(
+			THREAD_ATTRIBUTE);
+	string conversation = commandPacket->getHeaderValueTo()->getParameter(
+			CONVERSATION_ATTRIBUTE);
 
-		
-		//Generate a 200 response	
-		//update tag
-    	dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-		resp = new SipResponse(200,"ok",(SipRequest*)*cmd.getCommandPacket());
-		
-		resp->addHeader( new SipHeader(*contact)); 
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-		resp->getHeaderValueTo()->setParameter("confID", "some_random_value");//prajwol:: add that unique THING for conversation
-		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
-							getDialogConfig()->sipIdentity->getSipUri().getString())));
-		
-		//add sdp
-		MRef<SipMessageContentMime*> mimeContent = new SipMessageContentMime(
-					mimeInPacket->getContentType(),
-					"",
-					mimeInPacket->getBoundry());
-		mimeContent->addPart(dynamic_cast<SipMessageContent*> (*(room->getSdp()->getSdpPacket())));
-		mimeContent->addPart(dynamic_cast<SipMessageContent*> (*rclInPacket));
-		resp->setContent(dynamic_cast<SipMessageContent*> (*mimeContent));
-		
-		//send the response
-		getSipStack()->enqueueCommand( SipSMCommand(resp, 
-				SipSMCommand::dialog_layer, 
-				SipSMCommand::transaction_layer));
-		
-		room->addParticipant(dialogState.callId, sdpInPacket);
+	//update tag
+	dialogState.updateState((SipRequest*) *commandPacket);
+	MRef<SipMessage*> resp = new SipResponse(200, "ok",
+			(SipRequest*) *commandPacket);
+	MRef<SipHeaderValue *> contact = new SipHeaderValueContact(
+			getDialogConfig()->getContactUri(false), -1);
 
-		std::vector<std::string> participants = rclInPacket->getParticipantList();
+	resp->addHeader(new SipHeader(*contact));
+	resp->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
+	resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
+			getDialogConfig()->sipIdentity->getSipUri().getString())));
 
-   		std::vector <std::string>::const_iterator iter;
-		iter = participants.begin();
-		while(iter != participants.end()){
-			//make call -->
-			MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app, dynamic_cast<SipMessageContent*> (*mimeContent));
-			CommandString inv(callClient->getCallId(), SipCommandString::invite, *iter);
-			SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-			getSipStack()->addDialog(callClient);
-			callClient->handleCommand(c);
-			//make call <--
+	room = app->getRoom(thread, conversation, true);
 
+	MRef<SipMessageContentMime*> mimeContent = room->getMimePacket();
+	mimeContent->replacePart(*rclInPacket);
+	resp->setContent(*mimeContent);
+
+	//send the response
+	getSipStack()->enqueueCommand(SipSMCommand(resp,
+			SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
+
+	room->authorize(commandPacket->getFrom().getUserIpString());
+	room->addParticipant(commandPacket->getFrom().getUserIpString(),
+			dialogState.callId, sdpInPacket);
+
+	std::vector<std::string> participants = rclInPacket->getParticipantList();
+
+	std::vector<std::string>::const_iterator iter;
+	iter = participants.begin();
+	while (iter != participants.end()) {
+		if (*iter == commandPacket->getFrom().getUserIpString()) {
 			iter++;
+			continue;
 		}
-		return true;
+
+		MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity,
+				"", app, dynamic_cast<SipMessageContent*> (*mimeContent),
+				thread, conversation);
+
+		CommandString inv(callClient->getCallId(), SipCommandString::invite,
+				*iter);
+		SipSMCommand c(inv, SipSMCommand::dialog_layer,
+				SipSMCommand::dialog_layer);
+
+		getSipStack()->addDialog(callClient);
+		callClient->handleCommand(c);
+
+		room->authorize(*iter);
+//		app->addCallClient(dynamic_cast<CallClient*> (*callClient));
+		app->addDialog(callClient);
+
+		iter++;
 	}
-	return false;
+	return true;
+}
+
+//TODO add state
+bool Call::inConference_INVITE(const SipSMCommand &cmd) {
+	return true;
+}
+
+bool Call::inConference_REFER(const SipSMCommand &cmd) {
+	cout << "3\n";
+	if (!transitionMatch("REFER", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer)) {
+		return false;
+	}
+
+	cout << "4\n";
+	if (room.isNull() || !room->isAuthorized(
+			cmd.getCommandPacket()->getFrom().getUserIpString())) {
+		return false;
+	}
+	cout << "5\n";
+
+	dialogState.updateState((SipRequest*) *cmd.getCommandPacket());
+	//Generate a 200 response
+	MRef<SipMessage*> resp = new SipResponse(200, "OK",
+			(SipRequest*) *cmd.getCommandPacket());
+	MRef<SipHeaderValue*> contact = new SipHeaderValueContact(
+			getDialogConfig()->getContactUri(false), -1);
+	resp->addHeader(new SipHeader(*contact));
+	resp->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
+	resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
+			getDialogConfig()->sipIdentity->getSipUri().getString())));
+	cout << "6\n";
+	getSipStack()->enqueueCommand(SipSMCommand(resp,
+			SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
+	cout << "7\n";
+
+	//send INVITE to sip uri in ReferTo
+	MRef<SipUri*> referTo =
+			new SipUri(cmd.getCommandPacket()->getHeaderValueNo(
+					SIP_HEADER_TYPE_REFERTO, 0)->getString());
+
+	string conversation =
+			cmd.getCommandPacket()->getHeaderValueTo()->getParameter(
+					CONVERSATION_ATTRIBUTE);
+
+	room = app->replaceRoom(room->getThreadId(), room->getConversationId(),
+			conversation);
+
+	MRef<SipMessageContentMime*> mimeContent = room->getMimePacket();
+	MRef<SipMessageContentRCL*> rclInPacket = new SipMessageContentRCL(
+			room->getRcl() + "," + referTo->getUserIpString(),
+			"application/resource-lists+xml");
+	mimeContent->replacePart(dynamic_cast<SipMessageContent*> (*rclInPacket));
+
+	MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "",
+			app, dynamic_cast<SipMessageContent*> (*mimeContent),
+			room->getThreadId(), room->getConversationId());
+	CommandString inv(callClient->getCallId(), SipCommandString::invite,
+			referTo->getUserIpString());
+	SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
+	getSipStack()->addDialog(callClient);
+	callClient->handleCommand(c);
+
+	//		send updated RCL to all clients in the room
+	map<string, MRef<Participant*> > roomParticipant = room->getParticipants();
+	map<string, MRef<Participant*> >::iterator iter; //=
+	//				roomParticipant.begin();
+
+	cout << "start iterating through room participants\n";
+	iter = roomParticipant.begin();
+	while (iter != roomParticipant.end()) {
+		//			retrieve call
+		cout << "getting call...\n";
+		cout << "current call id is " << iter->second->getCallId() << "\n";
+
+		string oldCallId =  iter->second->getCallId() ;
+		MRef<SipDialog*> oldDialog = app->getDialog(iter->second->getCallId()) ;
+		cout << "casting Dialog to callClient" << endl;
+		MRef<CallClient*> callClient = dynamic_cast<CallClient*> (*oldDialog);
+
+		if (oldDialog.isNull()) {
+			cout << "could not find dialog # " << oldCallId <<endl ;
+		} else {
+			callClient->setConversationId(conversation);
+			callClient->setMySipContent(
+					dynamic_cast<SipMessageContent*> (*mimeContent));
+
+			//					new CallClient(call->getSipStack(), myIdentity, "" , app, dynamic_cast<SipMessageContent*> (*mimeContent), thread, conversation, "");
+			cout << "call client created\n";
+
+			CommandString inv(oldCallId, SipCommandString::invite,
+					iter->second->getUri());
+			SipSMCommand c(inv, SipSMCommand::dialog_layer,
+					SipSMCommand::dialog_layer);
+			//					app->sipStack->addDialog(dynamic_cast<SipDialog*> (*callClient));
+
+			cout << "callClient added to dialog\n";
+			callClient->handleCommand(c);
+		}
+
+		//make call <--
+		iter++;
+	}
+
+	//		send NOTIFY to the sender of REFER
+	/* to be fixed */
+
+	//		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri); //getDialogConfig()->getContactUri());
+	//
+	//		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(),
+	//				dialogState.remoteUri, dialogState.seqNo, dialogState.callId);
+	//		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(
+	//				HEADER_USER_AGENT_DEFAULT)));
+	//		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
+	//		req->addHeader(new SipHeader(new SipHeaderValueContact(
+	//				getDialogConfig()->sipIdentity->getContactUri(getSipStack(),
+	//						false))));
+	//		req->addHeader(new SipHeader(new SipHeaderValueUnknown(
+	//				"Subscription-State", "active;expires=3600")));
+	//		req->getHeaderValueTo()->setParameter("tag", dialogState.remoteTag);
+	//		req->getHeaderValueFrom()->setParameter("tag", dialogState.localTag);
+	//
+	//		MRef<SipMessageContent*> content = new SipMessageContentUnknown(
+	//				"SIP/2.0 100 Trying", "message/sipfrag;version=2.0");
+	//		req->setContent(content);
+
+	//send notify request
+	//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
+	//				SipSMCommand::dialog_layer,
+	//				SipSMCommand::transaction_layer));
+	//
+	//		dialogState.updateState(req);
+
 }
 
 bool Call::start_terminated_INVITE(const SipSMCommand &cmd) {
-	
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
+
+	if (cmd.getType() != SipSMCommand::COMMAND_PACKET) {
 		return false;
 	}
-	
-	if (transitionMatch("INVITE", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer)) {
-		if(!room->isAuthorized(cmd.getCommandPacket()->getFrom().getUserIpString())) {
-			
+
+	if (transitionMatch("INVITE", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer)) {
+		if (!room->isAuthorized(
+				cmd.getCommandPacket()->getFrom().getUserIpString())) {
+
 			this->dialogState.updateState((SipRequest*) *cmd.getCommandPacket());
-			
+
 			//send 401 Unauthorized
-			MRef<SipMessage*> resp = new SipResponse( 401, 
-								"Not authorized in that room", 
-								(SipRequest*)*cmd.getCommandPacket() ); 
-			resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-			
-			getSipStack()->enqueueCommand( SipSMCommand(resp, 
-				SipSMCommand::dialog_layer, 
-				SipSMCommand::transaction_layer));
-			
+			MRef<SipMessage*> resp = new SipResponse(401,
+					"Not authorized in that room",
+					(SipRequest*) *cmd.getCommandPacket());
+			resp->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
+
+			getSipStack()->enqueueCommand(
+					SipSMCommand(resp, SipSMCommand::dialog_layer,
+							SipSMCommand::transaction_layer));
+
 			return true;
-		}	
+		}
 	}
-	
+
 	return false;
 }
 
-bool Call::inConference_waitingForByeResponse_BYEOut (const SipSMCommand &cmd) {
-	
-	if ( cmd.getType()!=SipSMCommand::COMMAND_STRING ) {
+bool Call::inConference_waitingForByeResponse_BYEOut(const SipSMCommand &cmd) {
+
+	if (cmd.getType() != SipSMCommand::COMMAND_STRING) {
 		return false;
 	}
-	
+
 	//check the hangup action
-	if (transitionMatch(cmd,
-			"hangup",
-			SipSMCommand::dialog_layer,
-			SipSMCommand::dialog_layer ) ) {
-		
+	if (transitionMatch(cmd, "hangup", SipSMCommand::dialog_layer,
+			SipSMCommand::dialog_layer)) {
+
 		//send BYE
 		MRef<SipRequest*> myBye = this->createSipMessageBye();
-		SipSMCommand sipcmd( *myBye,
-				SipSMCommand::dialog_layer,     // from layer (this class)
+		SipSMCommand sipcmd(*myBye, SipSMCommand::dialog_layer, // from layer (this class)
 				SipSMCommand::transaction_layer // to layer (down the stack)
 				);
 		getSipStack()->enqueueCommand(sipcmd);
@@ -265,115 +386,111 @@ bool Call::inConference_waitingForByeResponse_BYEOut (const SipSMCommand &cmd) {
 	return false;
 }
 
-bool Call::anyState_terminated (const SipSMCommand &cmd) {
-	
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
+bool Call::anyState_terminated(const SipSMCommand &cmd) {
+
+	if (cmd.getType() != SipSMCommand::COMMAND_PACKET) {
 		return false;
 	}
-	
-	if (transitionMatch("BYE",
-				cmd,
-				SipSMCommand::transaction_layer,
-				SipSMCommand::dialog_layer)) {
-		
+
+	if (transitionMatch("BYE", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer)) {
+
 		//update tag
 		this->dialogState.updateState((SipRequest*) *cmd.getCommandPacket());
-		
+
 		//send 200 OK for the BYE msg
-		MRef<SipMessage*> resp = new SipResponse( 200, "ok", (SipRequest*)*cmd.getCommandPacket() ); 
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-		
-		getSipStack()->enqueueCommand( SipSMCommand(resp, 
-				SipSMCommand::dialog_layer, 
-				SipSMCommand::transaction_layer));
-		
+		MRef<SipMessage*> resp = new SipResponse(200, "ok",
+				(SipRequest*) *cmd.getCommandPacket());
+		resp->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
+
+		getSipStack()->enqueueCommand(SipSMCommand(resp,
+				SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
+
 		//terminate the call
 		SipSMCommand sipcmd(
-				CommandString (dialogState.callId,"call_terminated"),
-				SipSMCommand::dialog_layer,     // from layer (this class)
-				SipSMCommand::dispatcher        // to layer
+				CommandString(dialogState.callId, "call_terminated"),
+				SipSMCommand::dialog_layer, // from layer (this class)
+				SipSMCommand::dispatcher // to layer
 				);
 		getSipStack()->enqueueCommand(sipcmd);
-		
+
 		room->delParticipant(dialogState.callId);
 
 		return true;
-	}
-	else if (transitionMatch("CANCEL", cmd,	SipSMCommand::transaction_layer, SipSMCommand::dialog_layer) ||
-		transitionMatchSipResponse("*",cmd,SipSMCommand::transaction_layer, SipSMCommand::dialog_layer,"4**") ||
-		transitionMatchSipResponse("*",cmd,SipSMCommand::transaction_layer, SipSMCommand::dialog_layer,"6**")) {
-		
+	} else if (transitionMatch("CANCEL", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer) || transitionMatchSipResponse("*", cmd,
+			SipSMCommand::transaction_layer, SipSMCommand::dialog_layer, "4**")
+			|| transitionMatchSipResponse("*", cmd,
+					SipSMCommand::transaction_layer,
+					SipSMCommand::dialog_layer, "6**")) {
+
 		//update tag
 		this->dialogState.updateState((SipRequest*) *cmd.getCommandPacket());
-		
+
 		//terminate the call
 		SipSMCommand sipcmd(
-				CommandString (dialogState.callId,"call_terminated"),
-				SipSMCommand::dialog_layer,     // from layer (this class)
-				SipSMCommand::dispatcher        // to layer
+				CommandString(dialogState.callId, "call_terminated"),
+				SipSMCommand::dialog_layer, // from layer (this class)
+				SipSMCommand::dispatcher // to layer
 				);
 		getSipStack()->enqueueCommand(sipcmd);
-		
-		return true;		
+
+		return true;
 	}
 	return false;
 }
 
-bool Call::waitingForByeResponse_terminated_200 (const SipSMCommand &cmd) {
-	
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
+bool Call::waitingForByeResponse_terminated_200(const SipSMCommand &cmd) {
+
+	if (cmd.getType() != SipSMCommand::COMMAND_PACKET) {
 		return false;
 	}
-	
-	if (transitionMatchSipResponse("BYE", cmd,
-			SipSMCommand::transaction_layer,
-			SipSMCommand::dialog_layer,
-			"2**")) {
-		
-		dialogState.updateState((SipResponse*)*cmd.getCommandPacket());
-			
+
+	if (transitionMatchSipResponse("BYE", cmd, SipSMCommand::transaction_layer,
+			SipSMCommand::dialog_layer, "2**")) {
+
+		dialogState.updateState((SipResponse*) *cmd.getCommandPacket());
+
 		//terminate the call
 		SipSMCommand sipcmd(
-				CommandString (dialogState.callId,"call_terminated"),
-				SipSMCommand::dialog_layer,     // from layer (this class)
-				SipSMCommand::dispatcher        // to layer
+				CommandString(dialogState.callId, "call_terminated"),
+				SipSMCommand::dialog_layer, // from layer (this class)
+				SipSMCommand::dispatcher // to layer
 				);
 		getSipStack()->enqueueCommand(sipcmd);
-		
+
 		room->delParticipant(dialogState.callId);
-		
-		return true;		
+
+		return true;
 	}
 	return false;
 }
 
 bool Call::anyState_terminated_cmd(const SipSMCommand &cmd) {
-	if ( cmd.getType()!=SipSMCommand::COMMAND_STRING ) {
+	if (cmd.getType() != SipSMCommand::COMMAND_STRING) {
 		return false;
 	}
-	
+
 	//check the hangup action
-	if (transitionMatch(cmd,
-			"delete",
-			SipSMCommand::dialog_layer,
-			SipSMCommand::dialog_layer ) ) {
-	
+	if (transitionMatch(cmd, "delete", SipSMCommand::dialog_layer,
+			SipSMCommand::dialog_layer)) {
+
 		//terminate the call
 		SipSMCommand sipcmd(
-				CommandString (dialogState.callId,"call_terminated"),
-				SipSMCommand::dialog_layer,     // from layer (this class)
-				SipSMCommand::dispatcher        // to layer
+				CommandString(dialogState.callId, "call_terminated"),
+				SipSMCommand::dialog_layer, // from layer (this class)
+				SipSMCommand::dispatcher // to layer
 				);
 		getSipStack()->enqueueCommand(sipcmd);
-		
+
 		room->delParticipant(dialogState.callId);
 		return true;
 	}
 	return false;
-	
+
 }
 
-string Call::getName(){
+string Call::getName() {
 	return "Call";
 }
 
@@ -381,63 +498,3 @@ string Call::getUri() {
 	return getDialogConfig()->getContactUri(false).getString();
 }
 
-bool Call::handle_refer (const SipSMCommand &cmd) {
-
-	if ( cmd.getType()!=SipSMCommand::COMMAND_PACKET ) {
-			return false;
-		}
-
-
-	if (transitionMatch("REFER", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer)) {
-
-		dialogState.updateState((SipRequest*)*cmd.getCommandPacket());
-
-		//Generate a 202 response
-
-		MRef<SipMessage*> resp = new SipResponse(200,"Ok",(SipRequest*)*cmd.getCommandPacket());
-		MRef<SipHeaderValue*> contact = new SipHeaderValueContact(getDialogConfig()->getContactUri(false),-1);
-		resp->addHeader( new SipHeader(*contact));
-		resp->getHeaderValueTo()->setParameter("tag",dialogState.localTag);
-//		resp->addHeader(new SipHeader(new SipHeaderValueUnknown("X-Conf",
-//				getDialogConfig()->sipIdentity->getSipUri().getString())));
-		getSipStack()->enqueueCommand( SipSMCommand(resp,
-						SipSMCommand::dialog_layer,
-						SipSMCommand::transaction_layer));
-
-//		send INVITE to sip uri in ReferTo
-		MRef<SipMessageContentMime*> mimeInPacket ;// = dynamic_cast <SipMessageContentMime*> (*(cmd.getCommandPacket())->getContent());
-		MRef<SipDialog*> callClient = new CallClient(getSipStack(), myIdentity, "" , app, dynamic_cast<SipMessageContent*> (*mimeInPacket));
-		CommandString inv(callClient->getCallId(), SipCommandString::invite, cmd.getCommandPacket()->getHeaderValueNo(SIP_HEADER_TYPE_REFERTO,0)->getString());
-		SipSMCommand c(inv, SipSMCommand::dialog_layer, SipSMCommand::dialog_layer);
-		getSipStack()->addDialog(callClient);
-		callClient->handleCommand(c);
-
-//		send NOTIFY to the sender of REFER
-		/* to be fixed */
-
-		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri) ; //getDialogConfig()->getContactUri());
-
-		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(), dialogState.remoteUri,
-				  dialogState.seqNo,dialogState.callId);
-		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(HEADER_USER_AGENT_DEFAULT)));
-		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
-
-		req->addHeader(new SipHeader(new SipHeaderValueContact(getDialogConfig()->sipIdentity->getContactUri(getSipStack(), false)))) ;
-
-
-		req->addHeader(new SipHeader(new SipHeaderValueUnknown("Subscription-State", "active;expires=3600")));
-
-		req->getHeaderValueTo()->setParameter("tag",dialogState.remoteTag);
-		req->getHeaderValueFrom()->setParameter("tag",dialogState.localTag);
-
-		MRef <SipMessageContent*> content = new SipMessageContentUnknown("SIP/2.0 100 Trying", "message/sipfrag;version=2.0") ;
-		req->setContent(content) ;
-
-		//send the response
-		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
-				SipSMCommand::dialog_layer,
-				SipSMCommand::transaction_layer));
-
-		dialogState.updateState(req);
-	}
-}

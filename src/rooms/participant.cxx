@@ -62,7 +62,7 @@ int EndPoint::getPort() {
 }
 
 //PARTICIPANT
-Participant::Participant(string callId, Manager* sm) : callId(callId), sm(sm) {
+Participant::Participant(string uri, string callId, Manager* sm) : uri(uri), callId(callId), sm(sm) {
 	
 }
 void Participant::addFlowTo(MRef<ToFlow*> flow) {
@@ -123,5 +123,9 @@ string Participant::getIp4Media(string mediaType) {
 
 string Participant::getCallId() {
 	return callId;
+}
+
+string Participant::getUri() {
+	return uri;
 }
 

@@ -44,20 +44,18 @@ class Call : public SipDialog{
 		string getUri();
 		
 		bool start_inConference (const SipSMCommand &cmd);
+		bool inConference_INVITE(const SipSMCommand &cmd);
+		bool inConference_REFER(const SipSMCommand &cmd);
 		bool start_terminated_INVITE(const SipSMCommand &cmd);
 		bool inConference_waitingForByeResponse_BYEOut (const SipSMCommand &cmd);
 		bool waitingForByeResponse_terminated_200 (const SipSMCommand &cmd);
 		bool anyState_terminated(const SipSMCommand &cmd);
 		bool anyState_terminated_cmd(const SipSMCommand &cmd);		
 
-		bool handle_refer(const SipSMCommand &cmd);
 	private:
 		MRef<SipIdentity*> myIdentity;
 		MRef<App*> app;
 		MRef<Room*> room;
-		MRef<SipMessageContentMime*> mimeInPacket;
-		MRef<SdpPacket*> sdpInPacket;
-		MRef<SipMessageContentRCL*> rclInPacket;
 };
 #include "../app.h"
 #include "../rooms/room.h"
