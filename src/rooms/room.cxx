@@ -46,9 +46,9 @@ Room::Room(string threadId, string conversationId, string description, MRef<
 			description(description), app(app) {
 
 	fixedSdp = createNewSdpDesc();
-	mimePacket = new SipMessageContentMime("multipart/mixed", "",
-			"8Yards");
-	mimePacket->addPart(dynamic_cast <SipMessageContent*> (*fixedSdp->getSdpPacket()));
+	mimePacket = new SipMessageContentMime("multipart/mixed", "", "8Yards");
+	mimePacket->addPart(
+			dynamic_cast<SipMessageContent*> (*fixedSdp->getSdpPacket()));
 }
 
 void Room::addParticipant(string uri, string callId, MRef<SdpPacket*> sdp) {
@@ -249,10 +249,6 @@ string Room::getId() {
 	return Room::getRoomId(this->threadId, this->conversationId);
 }
 
-string Room::getThreadId() {
-	return threadId;
-}
-
 string Room::getRcl() {
 	map<string, MRef<Participant*> >::iterator p_i;
 	string rcl = "";
@@ -263,6 +259,14 @@ string Room::getRcl() {
 		rcl += p_i->second->getUri();
 	}
 	return rcl;
+}
+
+string Room::getThreadId() {
+	return threadId;
+}
+
+void Room::setThreadId(string threadId) {
+	this->threadId = threadId;
 }
 
 string Room::getConversationId() {
@@ -294,9 +298,11 @@ void Room::setMimePacket(MRef<SipMessageContentMime*> mimePacket) {
 }
 
 MRef<SdpDesc*> Room::createNewSdpDesc() {
-	MRef<SdpDesc*> sdp = new SdpDesc(0, "i2conf_Nebula",
-			app->sipStack->getStackConfig()->localIpString, "nebula_conversation"
-					+ getId() + ": " + getDescription(), "", 0, 0);
+	MRef<SdpDesc*> sdp =
+			new SdpDesc(0, "i2conf_Nebula",
+					app->sipStack->getStackConfig()->localIpString,
+					"nebula_conversation" + getId() + ": " + getDescription(),
+					"", 0, 0);
 	MRef<Media*> audio = new Media("audio", /*getMediaPort()*/5568, "RTP/AVP",
 			app->sipStack->getStackConfig()->localIpString);
 

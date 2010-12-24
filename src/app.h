@@ -41,8 +41,7 @@
 
 #include "sdp/sdpDesc.h"
 #include "config/XMLConfig.h"
-#include "sip/callIn.h"
-#include "sip/callOut.h"
+#include "sip/call.h"
 
 #define THREAD_ATTRIBUTE "thread"
 #define CONVERSATION_ATTRIBUTE "conv"
@@ -67,10 +66,8 @@ public:
 
 	map<string, MRef<Room*> > getRooms();
 	MRef<Room*> getRoom(string threadId, string conversationId);
-	MRef<Room*> getRoom(string threadId, string conversationId,
-			bool createIfNotExist);
-	MRef<Room*>
-			replaceRoom(string threadId, string oldConvId, string newConvId);
+	MRef<Room*> getRoom(string threadId, string conversationId, bool createIfNotExist);
+	MRef<Room*>	replaceRoom(string threadId, string oldConvId, string newConvId);
 	void removeCallId(string callId);
 
 	int getMediaPort();
@@ -79,9 +76,9 @@ public:
 	Manager* getStreamManager();
 	int getFlowId();
 
-	map<string, MRef<SipDialog*> > getDialogs();
-	void addDialog(MRef<SipDialog*> dialog);
-	MRef<SipDialog*> getDialog(string callId);
+	map<string, MRef<Call*> > getCalls();
+	void addCall(MRef<Call*> call);
+	MRef<Call*> getCallById(string callId);
 
 private:
 	MRef<SipIdentity*> myIdentity;
@@ -95,7 +92,7 @@ private:
 	int flowId;
 
 	map<string, MRef<Room*> > rooms;
-	map<string, MRef<SipDialog*> > dialogs;
+	map<string, MRef<Call*> > calls;
 
 	Manager* sm;
 	void loadConfig(string configFile);

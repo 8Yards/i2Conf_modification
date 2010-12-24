@@ -62,17 +62,15 @@ bool App::handleCommand(const SipSMCommand& cmd) {
 	}
 
 	if (cmd.getCommandPacket()->getType() == "INVITE") {
-		MRef<SipDialog*> call = new CallIn(sipStack, myIdentity,
-				cmd.getCommandPacket()->getCallId(), this);
+		MRef<Call*> call = new Call(sipStack, myIdentity, cmd.getCommandPacket()->getCallId(), this);
 		lastCallId = call->getCallId();
-		dialogs[lastCallId] = call;
-		sipStack->addDialog(call);
+		calls[lastCallId] = call;
+		sipStack->addDialog(dynamic_cast<SipDialog*> (*call));
 		bool ret = call->handleCommand(cmd);
 		//massert(ret)
 		return ret;
 	} else {
-		cerr << "App:: I don't know how to handle packet "
-		<< cmd.getCommandPacket()->getType() << endl;
+		cerr << "App:: I don't know how to handle packet "	<< cmd.getCommandPacket()->getType() << endl;
 		return false;
 	}
 
@@ -98,7 +96,7 @@ string App::getLastCallId() {
 
 void App::removeCallId(string callId) {
 	//	calls.erase(callId);
-	dialogs.erase(callId);
+	calls.erase(callId);
 }
 
 MRef<Room*> App::getRoom(string threadId, string conversationId) {
@@ -112,9 +110,9 @@ MRef<Room*> App::getRoom(string threadId, string conversationId,
 			threadId, conversationId));
 
 	if (iter == rooms.end() && createIfNotExist) {
-		cout << "new room created" << endl;
 		room = new Room(threadId, conversationId, "", this);
 		rooms[room->getId()] = room;
+		cout << "new room created" << room->getId() << endl;
 	} else {
 		room = iter->second;
 	}
@@ -220,18 +218,19 @@ MRef<Room*> App::replaceRoom(string threadId, string oldConvId,
 
 	newRoom->setConversationId(newConvId);
 	rooms[newRoom->getId()] = newRoom;
+	cout<< "Room replaced " << oldConvId << " to " << newConvId << endl;
 
 	return newRoom;
 }
 
-map<string, MRef<SipDialog*> > App::getDialogs() {
-	return this->dialogs;
+map<string, MRef<Call*> > App::getCalls() {
+	return this->calls;
 }
 
-void App::addDialog(MRef<SipDialog*> dialog) {
-	dialogs[dialog->getCallId()] = dialog;
+void App::addCall(MRef<Call*> call) {
+	calls[call->getCallId()] = call;
 }
 
-MRef<SipDialog*> App::getDialog(string callId) {
-	return dialogs.find(callId)->second;
+MRef<Call*> App::getCallById(string callId) {
+	return calls.find(callId)->second;
 }

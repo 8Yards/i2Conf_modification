@@ -90,14 +90,20 @@ int ua_main(int argc, char **argv) {
 				app->sipStack->handleCommand(cmd);
 			} else if (line.substr(0, 6) == "printm") {
 				cout << app->getStreamManager()->printManagement() << endl;
-			} else if (line.substr(0, 7) == "dialogs") {
-				map<string, MRef<SipDialog*> > dialogs = app->getDialogs();
-				map<string, MRef<SipDialog*> >::iterator iter;
-
-				cout << "Dialogs count: " << dialogs.size() << endl;
-				for (iter = dialogs.begin(); iter != dialogs.end(); iter++) {
+			} else if (line.substr(0, 5) == "calls") {
+				map<string, MRef<Call*> > calls = app->getCalls();
+				cout << "Calls count: " << calls.size() << endl;
+				for (map<string, MRef<Call*> >::iterator iter = calls.begin(); iter != calls.end(); iter++) {
 					cout << iter->second->getName() << " " << iter->second->getCallId() << endl;
 				}
+
+				list<MRef<SipDialog*> > dialogs = app->sipStack->getDialogs();
+				cout << endl << "Dialogs count: " << dialogs.size() << endl;
+				for (list<MRef<SipDialog*> >::iterator iterD = dialogs.begin(); iterD != dialogs.end(); iterD++) {
+					cout << (*iterD)->getName() << " " << (*iterD)->getCallId() << endl;
+				}
+
+
 			} else if (line.substr(0, 5) == "rooms") {
 				map<string, MRef<Room*> > rooms = app->getRooms();
 				map<string, MRef<Room*> >::iterator iter;

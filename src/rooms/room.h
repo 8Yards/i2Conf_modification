@@ -24,7 +24,7 @@
 #ifndef ROOM_H
 #define ROOM_H
 
-#include "../sip/callIn.h"
+#include "../sip/call.h"
 #include "../sdp/sdpDesc.h"
 #include "participant.h"
 
@@ -53,8 +53,10 @@ class Room : public MObject {
 		bool isAuthorized(string uri);
 
 		string getId();
-		string getThreadId();
 		string getRcl();
+
+		string getThreadId();
+		void setThreadId(string threadId);
 
 		string getConversationId();
 		void setConversationId(string conversationId);
