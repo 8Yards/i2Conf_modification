@@ -46,6 +46,7 @@ public:
 	bool inCall_calling_invite(const SipSMCommand &cmd);
 	bool inCall_inCall_refer(const SipSMCommand &cmd);
 	bool callOut(const SipSMCommand &cmd, bool isReInvite);
+	bool inCall_terminated(SipSMCommand &cmd);
 
 	string getName();
 	string getUri();
