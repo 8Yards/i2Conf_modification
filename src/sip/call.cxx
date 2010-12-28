@@ -26,7 +26,6 @@
  * 			Nina Mulkijanyan <nmulky@gmail.com>
  */
 
-
 #include<string>
 
 #include "call.h"
@@ -109,6 +108,20 @@ Call::Call(MRef<SipStack*> stack, MRef<SipIdentity*> ident, string cid, MRef<
 			"transition_inCall_terminated",
 			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::inCall_terminated_bye,
 			s_inCall, s_terminated);
+
+	//from any state to terminated - for incoming CANCEL or 4** status to any request
+	new StateTransition<SipSMCommand, string>(
+			this,
+			"transition_anyState_terminated",
+			(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::anyState_terminated,
+			anyState, s_terminated);
+
+	//from any state to terminated - hangup from command line
+	new StateTransition<SipSMCommand, string>(
+				this,
+				"transition_anyState_terminated",
+				(bool(StateMachine<SipSMCommand, string>::*)(const SipSMCommand&)) &Call::anyState_terminated_hangup_cmd,
+				anyState, s_terminated);
 }
 
 bool Call::start_inCall_inviteIn(const SipSMCommand &cmd) {
@@ -266,7 +279,7 @@ bool Call::inCall_inCall_refer(const SipSMCommand &cmd){
 
 		CommandString inv("", SipCommandString::invite, "");
 		SipSMCommand c(inv, SipSMCommand::dialog_layer,	SipSMCommand::dialog_layer);
-//		referCall->handleCommand(c);
+		referCall->handleCommand(c);
 	}
 
 	return true;
@@ -316,13 +329,34 @@ bool Call::inCall_terminated_bye(const SipSMCommand &cmd) {
 	resp->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
 	getSipStack()->enqueueCommand(SipSMCommand(resp, SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
 
-	//terminate the call, remove the dialog
-	SipSMCommand sipcmd(CommandString(dialogState.callId, "call_terminated"), SipSMCommand::dialog_layer, SipSMCommand::dispatcher);
-	getSipStack()->enqueueCommand(sipcmd);
-
-	room->delParticipant(dialogState.callId);
-	app->removeCallId(dialogState.callId);
+	releaseResources();
 	return true;
+}
+
+bool Call::anyState_terminated(const SipSMCommand &cmd) {
+	if(!transitionMatch("CANCEL", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer) &&
+			!transitionMatchSipResponse("INVITE", cmd, SipSMCommand::transaction_layer, SipSMCommand::dialog_layer, "4**")) {
+		return false;
+	}
+
+	dialogState.updateState((SipRequest*) *cmd.getCommandPacket()) ;
+
+	releaseResources();
+	return true;
+}
+
+bool Call::anyState_terminated_hangup_cmd(const SipSMCommand &cmd) {
+	if (!transitionMatch(cmd, "hangup", SipSMCommand::dialog_layer, SipSMCommand::dialog_layer)) {
+		return false;
+	}
+
+	//send bye
+	MRef<SipMessage*> bye = (SipMessage*)(*createSipMessageBye());
+    bye->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
+    getSipStack()->enqueueCommand(SipSMCommand(bye, SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
+
+    releaseResources();
+	return true ;
 }
 
 bool Call::callOut(const SipSMCommand &cmd, bool isReInvite) {
@@ -330,7 +364,6 @@ bool Call::callOut(const SipSMCommand &cmd, bool isReInvite) {
 			SipSMCommand::dialog_layer, SipSMCommand::dialog_layer)) {
 		return false;
 	}
-
 	++dialogState.seqNo;
 	if (!isReInvite) {
 		dialogState.remoteUri = cmd.getCommandString().getParam();
@@ -352,6 +385,14 @@ bool Call::callOut(const SipSMCommand &cmd, bool isReInvite) {
 	getSipStack()->enqueueCommand(scmd, HIGH_PRIO_QUEUE);
 
 	return true;
+}
+
+void Call::releaseResources()
+{
+    SipSMCommand sipcmd(CommandString(dialogState.callId, "call_terminated"), SipSMCommand::dialog_layer, SipSMCommand::dispatcher);
+    room->delParticipant(dialogState.callId);
+    app->removeCallId(dialogState.callId);
+    getSipStack()->enqueueCommand(sipcmd);
 }
 
 string Call::getName() {

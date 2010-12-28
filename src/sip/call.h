@@ -50,7 +50,10 @@ public:
 	bool inCall_calling_invite(const SipSMCommand &cmd);
 	bool inCall_inCall_refer(const SipSMCommand &cmd);
 	bool inCall_terminated_bye(const SipSMCommand &cmd);
+	bool anyState_terminated(const SipSMCommand &cmd);
+	bool anyState_terminated_hangup_cmd(const SipSMCommand &cmd);
 	bool callOut(const SipSMCommand &cmd, bool isReInvite);
+	void releaseResources();
 
 	string getName();
 	string getUri();
