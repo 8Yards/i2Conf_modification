@@ -21,6 +21,10 @@
  *    Authors: Guillem Cabrera <guillem.cabrera@i2cat.net>
  *             Erik Eliasson <eliasson@it.kth.se>
  */
+/*
+ * Authors: Prajwol Kumar Nakarmi <prajwolkumar.nakarmi@gmail.com>
+ * 			Nina Mulkijanyan <nmulky@gmail.com>
+ */
 
 #ifndef CALL_H
 #define CALL_H
@@ -45,8 +49,8 @@ public:
 	bool calling_inCall_200(const SipSMCommand &cmd);
 	bool inCall_calling_invite(const SipSMCommand &cmd);
 	bool inCall_inCall_refer(const SipSMCommand &cmd);
+	bool inCall_terminated_bye(const SipSMCommand &cmd);
 	bool callOut(const SipSMCommand &cmd, bool isReInvite);
-	bool inCall_terminated(SipSMCommand &cmd);
 
 	string getName();
 	string getUri();
