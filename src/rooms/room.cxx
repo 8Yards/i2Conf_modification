@@ -159,12 +159,11 @@ void Room::addParticipant(string uri, string callId, MRef<SdpPacket*> sdp) {
 }
 
 void Room::delParticipant(string callId) {
-
-	MRef<Participant*> participant = participants[callId];
-
-	if (!participant) {
+	if (!existsParticipant(callId)) {
 		return;
 	}
+
+	MRef<Participant*> participant = participants[callId];
 
 	//DELETE DESTINATIONS TO THAT PARTICIPANT
 	list<MRef<ToFlow*> > deleteTo; //flowId, mediaType, SrcId
@@ -215,7 +214,11 @@ void Room::delParticipant(string callId) {
 	}
 
 	participants.erase(callId);
-	app->removeCallId(callId);
+
+	if (participants.size() == 0) {
+		cout << "Room " << getId() << " is empty and will be deleted" << endl ;
+		app->removeRoom(getId()) ;
+	}
 }
 
 map<string, MRef<Participant*> > Room::getParticipants() {
@@ -223,10 +226,14 @@ map<string, MRef<Participant*> > Room::getParticipants() {
 }
 
 bool Room::existsParticipant(string callId) {
-	if (*participants[callId] == NULL)
+	map<string, MRef<Participant*> >::iterator iter = participants.find(callId) ;
+
+	if (iter == participants.end()) {
 		return false;
-	else
-		return true;
+	}
+	else {
+		return true ;
+	}
 }
 
 void Room::authorize(string uri) {
