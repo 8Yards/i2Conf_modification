@@ -223,6 +223,10 @@ MRef<Room*> App::replaceRoom(string threadId, string oldConvId,
 	return newRoom;
 }
 
+void App::removeRoom(string roomName) {
+	rooms.erase(roomName);
+}
+
 map<string, MRef<Call*> > App::getCalls() {
 	return this->calls;
 }

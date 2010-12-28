@@ -68,6 +68,7 @@ public:
 	MRef<Room*> getRoom(string threadId, string conversationId);
 	MRef<Room*> getRoom(string threadId, string conversationId, bool createIfNotExist);
 	MRef<Room*>	replaceRoom(string threadId, string oldConvId, string newConvId);
+	void removeRoom(string roomName);
 	void removeCallId(string callId);
 
 	int getMediaPort();
