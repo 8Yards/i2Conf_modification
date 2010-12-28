@@ -83,9 +83,9 @@ int ua_main(int argc, char **argv) {
 		} else {
 			if (line.substr(0, 6) == "hangup") {
 				string callId = trim(line.substr(6));
-				if (callId.size() == 0)
+				if (callId.size() == 0){
 					callId = app->getLastCallId();
-
+				}
 				CommandString cmd(callId, "hangup");
 				app->sipStack->handleCommand(cmd);
 			} else if (line.substr(0, 6) == "printm") {
@@ -130,6 +130,10 @@ int ua_main(int argc, char **argv) {
 								<< endl;
 					}
 				}
+			} else if (line.substr(0,5) == "debug") {
+				app->sipStack->setDebugPrintPackets(true);
+			} else if (line.substr(0,7) == "nodebug") {
+				app->sipStack->setDebugPrintPackets(false);
 			} else if (line.substr(0, 3) == "del") {
 				string callId = trim(line.substr(3));
 
