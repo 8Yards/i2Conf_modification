@@ -80,8 +80,18 @@ int ua_main(int argc, char **argv) {
 			cout << "<------------- Sip Stack Status ------------->" << endl;
 			cout << app->sipStack->getStackStatusDebugString();
 			cout << "<-------------------------------------------->" << endl;
-		} else {
-			if (line.substr(0, 6) == "hangup") {
+		} else if (line.substr(0, 9) == "hangupall") {
+			string callId ;
+			map<string, MRef<Call*> > calls = app->getCalls();
+			map<string, MRef<Call*> >::iterator iter ;
+
+			for (iter=calls.begin(); iter!=calls.end(); iter++) {
+				callId = iter->first;
+				CommandString cmd(callId, "hangup");
+				app->sipStack->handleCommand(cmd);
+			}
+
+		} else if (line.substr(0, 6) == "hangup") {
 				string callId = trim(line.substr(6));
 				if (callId.size() == 0){
 					callId = app->getLastCallId();
@@ -142,7 +152,7 @@ int ua_main(int argc, char **argv) {
 			} else if (line.substr(0, 4) == "exit") {
 				exit(0);
 			}
-		}
+
 	}
 	return 0;
 }
