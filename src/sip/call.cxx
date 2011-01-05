@@ -352,7 +352,6 @@ bool Call::anyState_terminated_hangup_cmd(const SipSMCommand &cmd) {
 
 	//send bye
 	MRef<SipMessage*> bye = (SipMessage*)(*createSipMessageBye());
-    bye->getHeaderValueTo()->setParameter("tag", dialogState.localTag);
     getSipStack()->enqueueCommand(SipSMCommand(bye, SipSMCommand::dialog_layer, SipSMCommand::transaction_layer));
 
     releaseResources();
