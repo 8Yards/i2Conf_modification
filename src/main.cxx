@@ -150,6 +150,20 @@ int ua_main(int argc, char **argv) {
 				CommandString cmd(callId, "delete");
 				app->sipStack->handleCommand(cmd);
 			} else if (line.substr(0, 4) == "exit") {
+
+				exit(0);
+			} else if (line.substr(0, 7) == "signout") {
+				//hangup all calls
+				string callId ;
+				map<string, MRef<Call*> > calls = app->getCalls();
+				map<string, MRef<Call*> >::iterator iter ;
+
+				for (iter=calls.begin(); iter!=calls.end(); iter++) {
+					callId = iter->first;
+					CommandString cmd(callId, "hangup");
+					app->sipStack->handleCommand(cmd);
+				}
+				//exit
 				exit(0);
 			}
 
