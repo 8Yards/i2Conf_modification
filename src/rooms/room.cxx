@@ -221,6 +221,11 @@ void Room::delParticipant(string callId) {
 		cout << "Room " << getId() << " is empty and will be deleted" << endl ;
 		app->removeRoom(getId()) ;
 	}
+	else if (participants.size() == 1) {
+		map<string, MRef<Participant*> >::iterator iter = participants.begin() ;
+		CommandString cmd(iter->first, "hangup");
+		app->sipStack->handleCommand(cmd);
+	}
 }
 
 map<string, MRef<Participant*> > Room::getParticipants() {
