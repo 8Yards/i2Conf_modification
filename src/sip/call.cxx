@@ -285,35 +285,6 @@ bool Call::inCall_inCall_refer(const SipSMCommand &cmd){
 	return true;
 }
 
-	//		send NOTIFY to the sender of REFER
-	/* to be fixed */
-
-	//		MRef<SipRequest*> req = new SipRequest("NOTIFY", dialogState.remoteUri); //getDialogConfig()->getContactUri());
-	//
-	//		req->addDefaultHeaders(getDialogConfig()->sipIdentity->getSipUri(),
-	//				dialogState.remoteUri, dialogState.seqNo, dialogState.callId);
-	//		req->addHeader(new SipHeader(new SipHeaderValueUserAgent(
-	//				HEADER_USER_AGENT_DEFAULT)));
-	//		req->addHeader(new SipHeader(new SipHeaderValueEvent("refer")));
-	//		req->addHeader(new SipHeader(new SipHeaderValueContact(
-	//				getDialogConfig()->sipIdentity->getContactUri(getSipStack(),
-	//						false))));
-	//		req->addHeader(new SipHeader(new SipHeaderValueUnknown(
-	//				"Subscription-State", "active;expires=3600")));
-	//		req->getHeaderValueTo()->setParameter("tag", dialogState.remoteTag);
-	//		req->getHeaderValueFrom()->setParameter("tag", dialogState.localTag);
-	//
-	//		MRef<SipMessageContent*> content = new SipMessageContentUnknown(
-	//				"SIP/2.0 100 Trying", "message/sipfrag;version=2.0");
-	//		req->setContent(content);
-
-	//send notify request
-	//		getSipStack()->enqueueCommand( SipSMCommand((MRef<SipMessage*>) *req,
-	//				SipSMCommand::dialog_layer,
-	//				SipSMCommand::transaction_layer));
-	//
-	//		dialogState.updateState(req);
-
 bool Call::inCall_calling_invite(const SipSMCommand &cmd){
 	return callOut(cmd, true);
 }

@@ -31,6 +31,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *    Authors: Guillem Cabrera <guillem.cabrera@i2cat.net>
+ *    		   Prajwol Kumar Nakarmi <prajwolkumar.nakarmi@gmail.com>
+ * 			   Nina Mulkijanyan <nmulky@gmail.com>
  */
 
 #include "room.h"

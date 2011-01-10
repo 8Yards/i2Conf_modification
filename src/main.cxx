@@ -20,6 +20,8 @@
  *
  *    Authors: Guillem Cabrera <guillem.cabrera@i2cat.net>
  *             Erik Eliasson <eliasson@it.kth.se>
+ *			   Prajwol Kumar Nakarmi <prajwolkumar.nakarmi@gmail.com>
+ * 			   Nina Mulkijanyan <nmulky@gmail.com>
  */
 
 #include<libmnetutil/init.h>
@@ -90,7 +92,6 @@ int ua_main(int argc, char **argv) {
 				CommandString cmd(callId, "hangup");
 				app->sipStack->handleCommand(cmd);
 			}
-
 		} else if (line.substr(0, 6) == "hangup") {
 				string callId = trim(line.substr(6));
 				if (callId.size() == 0){

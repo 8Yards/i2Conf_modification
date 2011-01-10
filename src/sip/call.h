@@ -20,10 +20,8 @@
  *
  *    Authors: Guillem Cabrera <guillem.cabrera@i2cat.net>
  *             Erik Eliasson <eliasson@it.kth.se>
- */
-/*
- * Authors: Prajwol Kumar Nakarmi <prajwolkumar.nakarmi@gmail.com>
- * 			Nina Mulkijanyan <nmulky@gmail.com>
+ *             Prajwol Kumar Nakarmi <prajwolkumar.nakarmi@gmail.com>
+ * 			   Nina Mulkijanyan <nmulky@gmail.com>
  */
 
 #ifndef CALL_H
